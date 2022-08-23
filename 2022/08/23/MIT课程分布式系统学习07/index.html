@@ -1,0 +1,361 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>MIT课程分布式系统学习07——Fault Tolerance raft2 | 雨落俊泉</title><meta name="keywords" content="分布式学习"><meta name="author" content="JunQuan Yi"><meta name="copyright" content="JunQuan Yi"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="MIT课程分布式系统学习07——Fault Tolerance raft2 参考资料 1、MIT 6.824 2020 Robert Morris 2、哔哩哔哩视频 2020 MIT 6.824 分布式系统 3、MIT 6.824翻译 4、CAP  仅供学习，如有侵权，请联系我删除 个人博客：https:&#x2F;&#x2F;yijunquan-afk.github.io&#x2F;  7.1 Log Backup 让我们想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT课程分布式系统学习07——Fault Tolerance raft2">
+<meta property="og:url" content="https://yijunquan-afk.github.io/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/index.html">
+<meta property="og:site_name" content="雨落俊泉">
+<meta property="og:description" content="MIT课程分布式系统学习07——Fault Tolerance raft2 参考资料 1、MIT 6.824 2020 Robert Morris 2、哔哩哔哩视频 2020 MIT 6.824 分布式系统 3、MIT 6.824翻译 4、CAP  仅供学习，如有侵权，请联系我删除 个人博客：https:&#x2F;&#x2F;yijunquan-afk.github.io&#x2F;  7.1 Log Backup 让我们想">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png">
+<meta property="article:published_time" content="2022-08-23T15:17:07.000Z">
+<meta property="article:modified_time" content="2022-08-23T15:17:48.635Z">
+<meta property="article:author" content="JunQuan Yi">
+<meta property="article:tag" content="分布式学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png"><link rel="shortcut icon" href="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/logo.jpeg"><link rel="canonical" href="https://yijunquan-afk.github.io/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MIT课程分布式系统学习07——Fault Tolerance raft2',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-08-23 23:17:48'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/bg.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/mmexport1659410440620.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">雨落俊泉</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MIT课程分布式系统学习07——Fault Tolerance raft2</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-08-23T15:17:07.000Z" title="发表于 2022-08-23 23:17:07">2022-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-08-23T15:17:48.635Z" title="更新于 2022-08-23 23:17:48">2022-08-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MIT%E8%AF%BE%E7%A8%8B/">MIT课程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MIT课程分布式系统学习07——Fault Tolerance raft2"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1>MIT课程分布式系统学习07——Fault Tolerance raft2</h1>
+<h2 id="参考资料">参考资料</h2>
+<p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/">1、MIT 6.824 2020 Robert Morris</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1x7411M7Sf?p=24&amp;spm_id_from=pageDriver&amp;vd_source=cd3a29969ef99a515cb112afc43a6c56">2、哔哩哔哩视频 2020 MIT 6.824 分布式系统</a></p>
+<p><a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-824/">3、MIT 6.824翻译</a></p>
+<p>4、<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_49102380/article/details/120943512">CAP</a></p>
+<blockquote>
+<p>仅供学习，如有侵权，请联系我删除<br>
+个人博客：<a href="https://yijunquan-afk.github.io/">https://yijunquan-afk.github.io/</a></p>
+</blockquote>
+<h2 id="7-1-Log-Backup">7.1 Log Backup</h2>
+<p>让我们想象一下如下的场景：有三台服务器以及日志。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  </span><br></pre></td></tr></table></figure>
+<p>3，4，5分别代表任期号，不用在意这些命令具体是什么。我们假设下一个任期是6，尽管你无法从黑板上确认这一点，但是下一个任期号至少是6或者更大。我们同时假设S3在任期6被选为Leader。在某个时刻，新Leader S3会发送任期6的第一个日志条目（<code>AppendEntries RPC</code>），来传输任期6的第一个Log，这个Log应该在槽位13。</p>
+<p>论文中的图2表示：<code>AppendEntries RPC</code> 实际上不仅是⽤来发送从Client发送给Leader的命令，也可以⽤来让所有follower对log进行复制。</p>
+<p>这里的<code>AppendEntries</code>消息实际上有两条，因为要发给两个Followers。它们包含了客户端发送给Leader的请求。我们现在想将这个请求复制到所有的Followers上。这里的<code>AppendEntries RPC</code>还包含了<code>prevLogIndex</code>字段和<code>prevLogTerm</code>字段。所以Leader在发送<code>AppendEntries</code>消息时，会附带前一个槽位的信息。在我们的场景中，<code>prevLogIndex</code>是前一个槽位的位置，也就是12；<code>prevLogTerm</code>是S3上前一个槽位的任期号，也就是5。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span></span><br></pre></td></tr></table></figure>
+<p>这样的<code>AppendEntries</code>消息发送给了Followers。Followers在它们收到<code>AppendEntries</code>之前(复制⽇志条⽬之前)，会先去<strong>进⾏检查</strong>。Followers要去检查它们⽇志中接收的前⼀个⽇志条⽬和leader所发送的信息是否匹配(S2的 slot12的信息(term4,接收的命令)是否与S3的slot12的(term5,发送的命令)是否匹配)。</p>
+<p>所以对于S2 它显然是不匹配的。S2 在槽位12已经有一个条目，但是它来自任期4，而不是任期5。所以S2将拒绝这个<code>AppendEntries</code>，并返回False给Leader。S1在槽位12还没有任何Log，所以S1也将拒绝Leader的这个<code>AppendEntries</code>。到目前位置，一切都还好。为什么这么说呢？因为<strong>我们不想看到的是，S2 把这条新的Log添加在槽位13。因为这样会破坏Raft论文中图2所依赖的归纳特性</strong>，并且隐藏S2 实际上在槽位12有一条不同的Log的这一事实。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">不想看到的场景如下：</span><br><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span></span><br></pre></td></tr></table></figure>
+<p>所以S1和S2都没有接受这条<code>AppendEntries</code>消息，所以，Leader看到了两个拒绝。</p>
+<p>Leader为每个Follower维护了<code>nextIndex</code>。所以它有一个S2的<code>nextIndex</code>，还有一个S1的<code>nextIndex</code>。之前没有说明的是，如果Leader之前发送的是有关槽位13的Log，这意味着Leader对于其他两个服务器的<code>nextIndex</code>都是13。这种情况发生在Leader刚刚当选，因为Raft论文的图2规定了，<code>nextIndex</code>的初始值是从新任Leader的最后一条日志开始，而在我们的场景中，对应的就是槽位13.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">不想看到的场景如下：</span><br><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex = <span class="number">12</span>	nextIndex[S2] = <span class="number">13</span> </span><br><span class="line">    			prevLogTerm = <span class="number">5</span>		nextIndex[S1] = <span class="number">13</span> </span><br></pre></td></tr></table></figure>
+<p>为了响应Followers返回的拒绝，Leader会减小对应的<code>nextIndex</code>。所以它现在减小了两个Followers的<code>nextIndex</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex = <span class="number">12</span>	nextIndex[S2] = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span>		nextIndex[S1] = <span class="number">12</span></span><br></pre></td></tr></table></figure>
+<p>这一次，Leader发送的<code>AppendEntries</code>消息中，<code>prevLogIndex</code>等于11，<code>prevLogTerm</code>等于3。同时，这次Leader发送的<code>AppendEntries</code>消息包含了<code>prevLogIndex</code>之后的所有条目，也就是S3上槽位12和槽位13的Log。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">4</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex = <span class="number">12</span> <span class="number">11</span>	nextIndex[S2] = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span>  <span class="number">3</span>		nextIndex[S1] = <span class="number">12</span></span><br></pre></td></tr></table></figure>
+<p>对于S2来说，这次收到的<code>AppendEntries</code>消息中，<code>prevLogIndex</code>等于11，<code>prevLogTerm</code>等于3，与自己本地的Log匹配，所以，S2会接受这个消息。Raft论文中的图2规定，如果接受一个<code>AppendEntries</code>消息，那么需要首先删除本地相应的Log（如果有的话），再用<code>AppendEntries</code>中的内容替代本地Log。所以，S2会这么做：它会删除本地槽位12的记录，再添加<code>AppendEntries</code>中的Log条目。这个时候，S2的Log与S3保持了一致。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  </span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex =<span class="number">12</span> <span class="number">11</span>	    nextIndex[S2] = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span> <span class="number">3</span>		nextIndex[S1] = <span class="number">12</span></span><br></pre></td></tr></table></figure>
+<p>但是，S1仍然有问题，因为它的槽位11是空的，所以它不能匹配这次的<code>AppendEntries</code>。它将再次返回False。而Leader会将S1对应的<code>nextIndex</code>变为11，并在<code>AppendEntries</code>消息中带上从槽位11开始之后的Log（也就是槽位11，12，13对应的Log）。</p>
+<p>这次的请求可以被S1接受，并得到肯定的返回。现在它们都有了一致的Log。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   <span class="number">6</span></span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex =<span class="number">12</span> <span class="number">11</span>		nextIndex[S2] = <span class="number">12</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span> <span class="number">3</span>		nextIndex[S1] = <span class="number">11</span></span><br></pre></td></tr></table></figure>
+<p>而Leader在收到了Followers对于AppendEntries的肯定的返回之后，它会增加相应的nextIndex到14。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span> <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   <span class="number">6</span></span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>  [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex =<span class="number">12</span> <span class="number">11</span>		nextIndex[S2] = <span class="number">14</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span> <span class="number">3</span>		nextIndex[S1] = <span class="number">11</span></span><br></pre></td></tr></table></figure>
+<p>在这里，Leader使用了一种备份机制(<code>backup mechanism</code>)来探测Followers的Log中，第一个与Leader的Log相同的位置。在获得位置之后，Leader会给Follower发送从这个位置开始的，剩余的全部Log。经过这个过程，所有节点的Log都可以和Leader保持一致。</p>
+<p>重复一个我们之前讨论过的话题。在刚刚的过程中，我们擦除(<code>erase</code>)了一些Log条目，比如我们刚刚删除了S2中的槽位12的Log。这个位置是任期4的Log。现在的问题是，❓ **为什么Raft系统可以安全的删除这条记录？**毕竟我们在删除这条记录时，某个相关的客户端请求也随之被丢弃了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">slot <span class="number">10</span> <span class="number">11</span> <span class="number">12</span>  <span class="number">13</span></span><br><span class="line">S1:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>    <span class="number">6</span></span><br><span class="line">S2:  <span class="number">3</span>  <span class="number">3</span> <span class="number">4</span>-&gt;<span class="number">5</span>  <span class="number">6</span></span><br><span class="line">S3:  <span class="number">3</span>  <span class="number">3</span>  <span class="number">5</span>   [<span class="number">6</span>]</span><br><span class="line">    			prevLogIndex =<span class="number">12</span> <span class="number">11</span>		nextIndex[S2] = <span class="number">14</span></span><br><span class="line">    			prevLogTerm = <span class="number">5</span> <span class="number">3</span>		nextIndex[S1] = <span class="number">11</span></span><br></pre></td></tr></table></figure>
+<p>我在上堂课说过这个问题，这里的原理是什么呢？是的，这条Log条目并没有存在于过半服务器中，因此无论之前的Leader是谁，发送了这条Log，它都没有得到过半服务器的认可。因此旧的Leader不可能commit了这条记录，也就不可能将它应用到应用程序的状态中，进而也就不可能回复给客户端说请求成功了。因为它没有存在于过半服务器中，发送这个请求的客户端没有理由认为这个请求被执行了，也不可能得到一个回复。因为这里有一条规则就是，<strong>Leader只会在commit之后回复给客户端</strong>。客户端甚至都没有理由相信这个请求被任意服务器收到了。并且，Raft论文中的图2说明，如果客户端发送请求之后一段时间没有收到回复，它应该重新发送请求。所以我们知道，不论这个被丢弃的请求是什么，我们都没有执行它，没有把它包含在任何状态中，并且客户端之后会重新发送这个请求。</p>
+<h2 id="7-2-Election-Restriction">7.2 Election Restriction</h2>
+<p>在前面的例子中，我们选择S3作为Leader。现在有个问题是，哪些节点允许成为Leader？</p>
+<p>如果你读了Raft论文，那么你就知道答案：为了保证系统的正确性，并非任意节点都可以成为Leader。<strong>不是说第一个选举定时器超时了并触发选举的节点，就一定是Leader。Raft对于谁可以成为Leader，谁不能成为Leader是有一些限制的。</strong></p>
+<p>为了证明并非任意节点都可以成为Leader，我们这里提出一个例子来证伪。在这个反例中，Raft会选择拥有最长Log记录的节点作为Leader，这个规则或许适用于其他系统，实际上在一些其他设计的系统中的确使用了这样的规则，但是<strong>在Raft中，这条规则不适用</strong>。所以，我们这里需要研究的问题是：:❓ **为什么不选择拥有最长Log记录的节点作为Leader？**如果我们这么做了的话，我们需要更改Raft中的投票规则，让选民只投票给拥有更长Log记录的节点。</p>
+<p>很容易可以展示为什么这是一个错误的观点。我们还是假设我们有3个服务器，现在服务器1（S1）有任期5，6，7的Log，服务器2和服务器3（S2和S3）有任期5，8的Log。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">S1:  <span class="number">5</span>  <span class="number">6</span>  <span class="number">7</span></span><br><span class="line">S2:  <span class="number">5</span>  <span class="number">8</span>  </span><br><span class="line">S3:  <span class="number">5</span>  <span class="number">8</span></span><br></pre></td></tr></table></figure>
+<p>为了避免我们在不可能出现的问题上浪费时间，这里的第一个问题是，这个场景可能出现吗？让我们回退一些时间，在这个时间点S1赢得了选举，现在它的任期号是6。它收到了一个客户端请求，在发出<code>AppendEntries</code>之前，它先将请求存放在自己的Log中，然后它就故障了，所以它没能发出任何<code>AppendEntries</code>消息。</p>
+<p>之后它很快就故障重启了，因为它是之前的Leader，所以会有一场新的选举。这次，它又被选为Leader。然后它收到了一个任期7的客户端请求，将这个请求加在本地Log之后，它又故障了。</p>
+<p>S1故障之后，我们又有了一次新的选举，这时S1已经关机了，不能再参加选举，这次S2被选为Leader。如果S2当选，而S1还在关机状态，S2会使用什么任期号呢？</p>
+<p>明显我们的答案是8，但是为什么任期号是8而不是6呢？尽管没有写在黑板上，但是S1在任期6，7能当选，它必然拥有了过半节点的投票，过半服务器至少包含了S2，S3中的一个节点。如果你去看处理<code>RequestVote</code>的代码和Raft论文的图2，当某个节点为候选人投票时，节点应该将候选人的任期号记录在持久化存储中。所里在这里，<strong>S2或者S3或者它们两者都知道任期6和任期7的存在</strong>。因此，当S1故障了，它们中至少一个知道当前的任期是8。这里，只有知道了任期8的节点才有可能当选，如果只有一个节点知道，那么这个节点会赢得选举，因为它拥有更高的任期号。如果S2和S3都知道当前任期是7，那么它们两者中的一个会赢得选举。所以，下一个任期必然为8这个事实，**依赖于不同任期的过半服务器之间必然有重合这个特点。同时，也依赖任期号会通过RequestVote RPC更新给其他节点，并持久化存储，这样出现故障才不会丢失数据。**所以下一个任期号将会是8，S2或者S3会赢得选举。不管是哪一个，新的Leader会继续将客户端请求转换成<code>AppendEntries</code>发给其他节点。所以我们现在有了这么一个场景。</p>
+<p>现在我们回到对于这个场景的最初的问题，假设S1重新上线了，并且我们又有了一次新的选举，这时候可以选择S1作为Leader吗？或者说，可以选择拥有最长Log记录的节点作为Leader可以吗？明显，答案是不可以的。</p>
+<p>如果S1是Leader，它会通过<code>AppendEntries</code>机制将自己的Log强加给2个Followers，这个我们刚刚说过了。如果我们让S1作为Leader，它会发出<code>AppendEntries</code>消息来覆盖S2和S3在任期8的Log，并在S2和S3中写入S1中的任期6和任期7的Log，这样所有的节点的Log才能与S1保持一致。:❓为什么我们不能认可这样的结果呢？</p>
+<p>因为S2和S3可以组成过半服务器，所以任期8的Log已经被commit了，对应的请求很可能已经执行了，应用层也很可能发送一个回复给客户端了。所以我们不能删除任期8的Log。因此，S1也就不能成为Leader并将自己的Log强制写入S2和S3。正因为这个原因，我们不能在选举的时候直接选择拥有最长Log记录的节点。当然，最短Log记录的节点也不行。</p>
+<p>在Raft论文的5.4.1，Raft有一个稍微复杂的选举限制（<code>Election Restriction</code>）。这个限制要求，在处理别节点发来的<code>RequestVote RPC</code>时，需要做一些检查才能投出赞成票。这里的限制是，节点只能向满足下面条件之一的候选人投出赞成票：</p>
+<blockquote>
+<p>1️⃣ 候选人最后一条Log条目的任期号<strong>大于</strong>本地最后一条Log条目的任期号；</p>
+<p>2️⃣ 候选人最后一条Log条目的任期号<strong>等于</strong>本地最后一条Log条目的任期号，且候选人的Log记录长度<strong>大于等于</strong>本地Log记录的长度</p>
+</blockquote>
+<p>回到我们的场景，如果S2收到了S1的<code>RequestVote RPC</code>，因为S1的最后一条Log条目的任期号是7，而S2的最后一条Log条目的任期号是8，两个限制都不满足，所以S2和S3都不会给S1投赞成票。即使S1的选举定时器的超时时间更短，并且先发出了<code>RequestVote</code>请求，除了它自己，没人会给它投票，所以它只能拿到一个选票，不能凑够过半选票。如果S2或者S3成为了候选人，它们中的另一个都会投出赞成票，因为它们最后的任期号一样，并且它们的Log长度大于等于彼此（满足限制2）。所以S2或者S3中的任意一个都会为另一个投票。S1会为它们投票吗？会的，因为S2或者S3最后一个Log条目对应的任期号更大（满足限制1）。</p>
+<p>所以在这里，<strong>Raft更喜欢拥有更高任期号记录的候选人，或者说更喜欢拥有任期号更高的旧Leader记录的候选人</strong>。限制2说明，<strong>如果候选人都拥有任期号最高的旧Leader记录，那么Raft更喜欢拥有更多记录的候选人。</strong></p>
+<h2 id="7-3-Log-Entries-Rollback-Scheme">7.3 Log Entries Rollback Scheme</h2>
+<p>在前面介绍的日志恢复机制中，如果Log有冲突，Leader每次会回退一条Log条目，这在许多场景下都没有问题。但是在某些现实的场景中，至少在Lab2的测试用例中，每次只回退一条Log条目会花费很长很长的时间。所以，现实的场景中，可能一个Follower关机了很长时间，错过了大量的<code>AppendEntries</code>消息。这时，Leader重启了。按照Raft论文中的图2，如果一个Leader重启了，它会将所有Follower的<code>nextIndex</code>设置为Leader本地Log记录的下一个槽位。所以，如果一个Follower关机并错过了1000条Log条目，Leader重启之后，需要每次通过一条RPC来回退一条Log条目来遍历1000条Follower错过的Log记录。这种情况在现实中并非不可能发生。在一些不正常的场景中，假设我们有5个服务器，有1个Leader，这个Leader和另一个Follower困在一个网络分区。但是这个Leader并不知道它已经不再是Leader了。它还是会向它唯一的Follower发送<code>AppendEntries</code>，因为这里没有过半服务器，所以没有一条Log会commit。在另一个有多数服务器的网络分区中，系统选出了新的Leader并继续运行。旧的Leader和它的Follower可能会记录无限多的旧的任期的未commit的Log。当旧的Leader和它的Follower重新加入到集群中时，这些Log需要被删除并覆盖。可能在现实中，这不是那么容易发生，但是你会在Lab2的测试用例中发现这个场景。</p>
+<p>所以，为了能够更快的恢复日志，Raft论文在论文的5.3结尾处，对一种方法有一些模糊的描述。原文有些晦涩，在这里我会以一种更好的方式尝试解释论文中有关快速恢复的方法。这里的大致思想是，让Follower返回足够的信息给Leader，这样<strong>Leader可以以任期（Term）为单位来回退，而不用每次只回退一条Log条目</strong>。所以现在，在恢复Follower的Log时，如果Leader和Follower的Log不匹配，Leader只需要对每个不同的任期发送一条<code>AppendEntries</code>，而不用对每个不同的Log条目发送一条<code>AppendEntries</code>。这只是一种加速策略，当然，或许你也可以想出许多其他不同的日志恢复加速策略。</p>
+<p>可以让Follower在回复Leader的<code>AppendEntries</code>消息中，携带3个额外的信息，来加速日志的恢复。这里的回复是指，Follower因为Log信息不匹配，拒绝了Leader的<code>AppendEntries</code>之后的回复。这里的三个信息是指：</p>
+<blockquote>
+<p>1️⃣ <strong>XTerm</strong>：这个是Follower中与Leader冲突的Log对应的任期号。在之前有介绍Leader会在<code>prevLogTerm</code>中带上本地Log记录中前一条Log的任期号。如果Follower在对应位置的任期号不匹配，它会拒绝Leader的<code>AppendEntries</code>消息，并将自己的任期号放在<code>XTerm</code>中。如果Follower在对应位置没有Log，那么这里会返回 -1。</p>
+<p>2️⃣ <strong>XIndex</strong>：这个是Follower中，对应任期号为<code>XTerm</code>的第一条Log条目的槽位号。</p>
+<p>3️⃣ <strong>XLen</strong>：如果Follower在对应位置没有Log，那么<code>XTerm</code>会返回-1，<code>XLen</code>表示空白的Log槽位数。</p>
+</blockquote>
+<p>我将可能出现的场景分成3类，为了简化，这里只画出一个Leader（S2）和一个Follower（S1），S2将要发送一条任期号为6的<code>AppendEntries</code>消息给Follower。</p>
+<p>🎨 场景1: S1没有任期6的任何Log，因此我们需要回退一整个任期的Log。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CASE <span class="number">1</span></span><br><span class="line">slot <span class="number">1</span> <span class="number">2</span> <span class="number">3</span></span><br><span class="line">S1   <span class="number">4</span> <span class="number">5</span> <span class="number">5</span></span><br><span class="line">S2   <span class="number">4</span> <span class="number">6</span> <span class="number">6</span> <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Follower（S1）会返回<code>XTerm=5，XIndex=2</code>。</p>
+<p>Leader（S2）发现自己没有任期5的日志，它会将自己本地记录的，S1的nextIndex设置到XIndex，也就是S1中任期5的第一条Log对应的槽位号2。所以，如果Leader完全没有XTerm的任何Log，那么它应该回退到XIndex对应的位置（这样，Leader发出的下一条AppendEntries就可以一次覆盖S1中所有XTerm对应的Log）。</p>
+</blockquote>
+<p>🎨 场景2: S1收到了任期4的旧Leader的多条Log，但是作为新Leader，S2只收到了一条任期4的Log。所以这里，我们需要覆盖S1中有关旧Leader的一些Log。</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CASE <span class="number">2</span></span><br><span class="line">slot <span class="number">1</span> <span class="number">2</span> <span class="number">3</span></span><br><span class="line">S1   <span class="number">4</span> <span class="number">4</span> <span class="number">4</span></span><br><span class="line">S2   <span class="number">4</span> <span class="number">6</span> <span class="number">6</span> <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Follower（S1）会返回<code>XTerm=4，XIndex=1</code>。</p>
+<p>Leader（S2）发现自己其实有任期4的日志，它会将自己本地记录的S1的nextIndex设置到本地在<strong>XTerm位置的Log条目后面</strong>，也就是槽位2。下一次Leader发出下一条AppendEntries时，就可以一次覆盖S1中槽位2和槽位3对应的Log。</p>
+</blockquote>
+<p>🎨 场景3: S1与S2的Log不冲突，但是S1缺失了部分S2中的Log。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CASE <span class="number">2</span></span><br><span class="line">slot <span class="number">1</span> <span class="number">2</span> <span class="number">3</span></span><br><span class="line">S1   <span class="number">4</span> </span><br><span class="line">S2   <span class="number">4</span> <span class="number">6</span> <span class="number">6</span> <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Follower（S1）会返回<code>XTerm=-1，XLen=2</code>。</p>
+<p>这表示S1中日志太短了，以至于在冲突的位置没有Log条目，Leader应该回退到Follower最后一条Log条目的下一条，也就是槽位2，并从这开始发<code>AppendEntries</code>消息。槽位2可以从XLen中的数值计算得到。</p>
+</blockquote>
+<p>对于这里的快速回退机制有什么问题吗？</p>
+<blockquote>
+<p>❓ ：这里是线性查找，可以使用类似二分查找的方法进一步加速吗？</p>
+<p>📖 ：我认为这是对的，或许这里可以用二分查找法。我没有排除其他方法的可能，我的意思是，Raft论文中并没有详细说明是怎么做的，所以我这里加工了一下。或许有更好，更快的方式来完成。如果Follower返回了更多的信息，那是可以用一些更高级的方法，例如二分查找，来完成。</p>
+<p>为了通过Lab2的测试，你肯定需要做一些优化工作。我们提供的Lab2的测试用例中，有一件不幸但是不可避免的事情是，它们需要一些实时特性。这些测试用例不会永远等待你的代码执行完成并生成结果。所以有可能你的方法技术上是对的，但是花了太多时间导致测试用例退出。这个时候，你是不能通过全部的测试用例的。因此你的确需要关注性能，从而使得你的方案即是正确的，又有足够的性能。不幸的是，性能与Log的复杂度相关，所以很容易就写出一个正确但是不够快的方法出来。</p>
+</blockquote>
+<h2 id="7-4-Persistence">7.4 Persistence</h2>
+<p>下一个我想介绍的是持久化（<code>persistence</code>）。你可以从Raft论文的图2的左上角看到，有些数据被标记为持久化的（<code>Persistent</code>），有些信息被标记为非持久化的（<code>Volatile</code>）。持久化和非持久化的区别只在服务器重新引导，崩溃和重新启动时(<code>a server reboots crashes and restarts</code>)，才会在意这个。当你更改了被标记为持久化的某个数据，服务器应该将更新写入到磁盘，或者其它的持久化存储中，例如一个电池供电的RAM。持久化的存储可以确保当服务器重启时，服务器可以找到相应的数据，并将其加载到内存中。这样可以使得服务器在故障并重启后，继续重启之前的状态。</p>
+<p>你或许会认为，如果一个服务器故障了，那简单直接的方法就是将它从集群中摘除。我们需要具备从集群中摘除服务器，替换一个全新的空的服务器，并让该新服务器在集群内工作的能力。实际上，这是至关重要的，因为如果一些服务器遭受了不可恢复的故障，例如磁盘故障，你绝对需要替换这台服务器。同时，如果磁盘故障了，你也不能指望能从该服务器的磁盘中获得任何有用的信息。**所以我们的确需要能够用全新的空的服务器替代现有服务器的能力。**你或许认为这就足以应对任何出问题的场景了，但实际上不是的。</p>
+<p>实际上，一个常见的故障是<strong>断电</strong>(<code>power failure </code>)。断电的时候，整个集群都同时停止运行，这种场景下，我们不能通过从Dell买一些新的服务器来替换现有服务器进而解决问题。这种场景下，如果我们希望我们的服务是容错的， 我们<strong>需要能够得到之前状态的拷贝</strong>，这样我们才能保持程序继续运行。因此，至少为了处理同时断电的场景，我们不得不让服务器能够将它们的状态存储在某处，这样当供电恢复了之后，还能再次获取这个状态。这里的状态是指，为了让服务器在断电或者整个集群断电后，能够继续运行所必不可少的内容。这是理解持久化存储的一种方式。</p>
+<p>在Raft论文的图2中，有且仅有三个数据是需要持久化存储的。它们分别是<code>Log、currentTerm、votedFor</code>。Log是所有的Log条目。当某个服务器刚刚重启，在它加入到Raft集群之前，它必须要检查并确保这些数据有效的存储在它的磁盘上。服务器必须要有某种方式来发现，自己的确有一些持久化存储的状态，而不是一些无意义的数据。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PERSISTENT</span><br><span class="line">	-LOG</span><br><span class="line">	-currentTerm</span><br><span class="line">	-votedFor</span><br></pre></td></tr></table></figure>
+<p>Log需要被持久化存储的原因是，这是唯一记录了应用程序状态的地方。Raft论文图2并没有要求我们持久化存储应用程序状态。假如我们运行了一个数据库或者为VMware FT运行了一个Test-and-Set服务，根据Raft论文图2，实际的数据库或者实际的test-set值，并不会被持久化存储，只有Raft的Log被存储了。所以当服务器重启时，唯一能用来重建应用程序状态的信息就是<strong>存储在Log中的一系列操作，所以Log必须要被持久化存储。</strong></p>
+<p>那currentTerm呢？为什么currentTerm需要被持久化存储？<strong>currentTerm和votedFor都是用来确保每个任期只有最多一个Leader</strong>。在一个故障的场景中，如果一个服务器收到了一个<code>RequestVote</code>请求，并且为服务器1投票了，之后它故障。如果它没有存储它为哪个服务器投过票，当它故障重启之后，收到了来自服务器2的同一个任期的另一个RequestVote请求，那么它还是会投票给服务器2，因为它发现自己的votedFor是空的，因此它认为自己还没投过票。现在这个服务器，在同一个任期内同时为服务器1和服务器2投了票。因为服务器1和服务器2都会为自己投票，它们都会认为自己有过半选票（3票中的2票），那它们都会成为Leader。现在同一个任期里面有了两个Leader。这就是为什么votedFor必须被持久化存储。</p>
+<p>currentTerm的情况要更微妙一些，但是实际上还是为了实现一个任期内最多只有一个Leader，我们之前实际上介绍过这里的内容。如果（重启之后）我们不知道任期号是什么，很难确保一个任期内只有一个Leader。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">S1  <span class="number">5</span>  <span class="number">6</span>  <span class="number">7</span></span><br><span class="line">S2  <span class="number">5</span>  <span class="number">8</span></span><br><span class="line">S3  <span class="number">5</span>  <span class="number">8</span></span><br></pre></td></tr></table></figure>
+<p>在这里例子中，S1关机了，S2和S3会尝试选举一个新的Leader。它们需要证据证明，正确的任期号是8，而不是6。如果仅仅是S2和S3为彼此投票，它们不知道当前的任期号，它们只能查看自己的Log，它们或许会认为下一个任期是6（因为Log里的上一个任期是5）。如果它们这么做了，那么它们会从任期6开始添加Log。但是接下来，就会有问题了，因为我们有了两个不同的任期6（另一个在S1中）。这就是为什么<strong>currentTerm需要被持久化存储的原因，因为它需要用来保存已经被使用过的任期号。</strong></p>
+<p>这些数据需要在每次你修改它们的时候存储起来。所以可以确定的是，安全的做法是每次你添加一个Log条目，更新<code>currentTerm</code>或者更新<code>votedFor</code>，你或许都需要持久化存储这些数据。在一个真实的Raft服务器上，这意味着将数据写入磁盘，所以你需要一些文件来记录这些数据。如果你发现，直到服务器与外界通信时，才有可能持久化存储数据，那么你可以通过一些批量操作来提升性能。例如，只在服务器回复一个RPC或者发送一个RPC时，服务器才进行持久化存储，这样可以节省一些持久化存储的操作。</p>
+<p>这很重要是因为，向磁盘写数据是一个代价很高的操作。如果是一个机械硬盘，我们通过写文件的方式来持久化存储，<strong>向磁盘写入任何数据都需要花费大概10毫秒时间</strong>。因为你要么需要等磁盘将你想写入的位置转到磁针下面， 而磁盘大概每10毫秒转一次。要么，就是另一种情况更糟糕，磁盘需要将磁针移到正确的轨道上。所以这里的持久化操作的代价可能会非常非常高。对于一些简单的设计，这些操作可能成为限制性能的因素，因为它们意味着在这些Raft服务器上执行任何操作，都需要10毫秒。而10毫秒相比发送RPC或者其他操作来说都太长了。如果你持久化存储在一个机械硬盘上，那么每个操作至少要10毫秒**，这意味着你永远也不可能构建一个每秒能处理超过100个请求的Raft服务**。这就是所谓的<code>synchronous disk updates</code>的代价。它存在于很多系统中，例如运行在你的笔记本上的文件系统。</p>
+<p>设计人员花费了大量的时间来避开<code>synchronous disk updates</code>带来的性能问题。为了让磁盘的数据保证安全，同时为了能安全更新你的笔记本上的磁盘，文件系统对于写入操作十分小心，有时需要等待磁盘（前一个）写入完成。所以这（优化磁盘写入性能）是一个出现在所有系统中的常见的问题，也必然出现在Raft中。</p>
+<p>如果你想构建一个能每秒处理超过100个请求的系统，这里有多个选择。其中一个就是，你可以使用<code>SSD</code>硬盘，或者某种闪存。<code>SSD</code>可以在0.1毫秒完成对于闪存的一次写操作，所以这里性能就提高了100倍。更高级一点的方法是，你可以构建一个<strong>电池供电的DRAM</strong>，然后在这个电池供电的DRAM中做持久化存储。这样，如果Server重启了，并且重启时间短于电池的可供电时间，这样你存储在RAM中的数据还能保存。如果资金充足，且不怕复杂的话，这种方式的优点是，你可以每秒写DRAM数百万次，那么持久化存储就不再会是一个性能瓶颈。所以，<code>synchronous disk updates</code>是为什么数据要区分持久化和非持久化（而非所有的都做持久化）的原因（<strong>越少数据持久化，越高的性能</strong>）。Raft论文图2考虑了很多性能，故障恢复，正确性的问题。</p>
+<p>有任何有关持久化存储的问题吗？</p>
+<blockquote>
+<p>❓ ：当你写你的Raft代码时，你实际上需要确认，当你持久化存储一个Log或者currentTerm，这些数据是否实时的存储在磁盘中，你该怎么做来确保它们在那呢？</p>
+<p>📖 ：在一个UNIX或者一个Linux或者一个Mac上，为了调用系统写磁盘的操作，你只需要调用write函数，在write函数返回时，并不能确保数据存在磁盘上，并且在重启之后还存在。几乎可以确定（write返回之后）数据不会在磁盘上。所以，如果在UNIX上，你调用了write，将一些数据写入之后，你需要调用fsync。在大部分系统上，fsync可以确保在返回时，所有之前写入的数据已经安全的存储在磁盘的介质上了。之后，如果机器重启了，这些信息还能在磁盘上找到。fsync是一个代价很高的调用，这就是为什么它是一个独立的函数，也是为什么write不负责将数据写入磁盘，fsync负责将数据写入磁盘。因为写入磁盘的代价很高，你永远也不会想要执行这个操作，除非你想要持久化存储一些数据。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">synchronous disk updates</span><br><span class="line"><span class="title function_">write</span><span class="params">(fd, _ )</span></span><br><span class="line"><span class="title function_">fsync</span><span class="params">(fd)</span></span><br></pre></td></tr></table></figure>
+<p>所以你可以使用一些更贵的磁盘。另一个常见方法是，批量执行操作。如果有大量的客户端请求，或许你应该同时接收它们，但是先不返回。等大量的请求累积之后，一次性持久化存储（比如）100个Log，之后再发送<code>AppendEntries</code>。如果Leader收到了一个客户端请求，在发送A<code>ppendEntries RPC</code>给Followers之前，必须要先持久化存储在本地。因为Leader必须要commit那个请求，并且不能忘记这个请求。实际上，在回复AppendEntries 消息之前，Followers也需要持久化存储这些Log条目到本地，因为它们最终也要commit这个请求，它们不能因为重启而忘记这个请求。</p>
+<p>最后，有关持久化存储，还有一些细节。有些数据在Raft论文的图2中标记为非持久化的。所以，这里值得思考一下，为什么服务器重启时，<code>commitIndex、lastApplied、nextIndex、matchIndex</code>，可以被丢弃？例如，l<code>astApplied</code>表示当前服务器执行到哪一步，如果我们丢弃了它的话，我们需要重复执行Log条目两次（重启前执行过一次，重启后又要再执行一次），这是正确的吗？为什么可以安全的丢弃<code>lastApplied</code>？</p>
+<p>这里综合考虑了Raft的简单性和安全性。之所以这些数据是非持久化存储的，是因为Leader可以通过检查自己的Log和发送给Followers的AppendEntries的结果，来发现哪些内容已经commit了。如果因为断电，所有节点都重启了。Leader并不知道哪些内容被commit了，哪些内容被执行了。但是当它发出AppendEntries，并从Followers搜集回信息。它会发现，Followers中有哪些Log与Leader的Log匹配，因此也就可以发现，在重启前，有哪些被commit了。</p>
+<p>另外，Raft论文的图2假设，应用程序状态会随着重启而消失。所以图2认为，既然Log已经持久化存储了，那么应用程序状态就不必再持久化存储。因为在图2中，Log从系统运行的初始就被持久化存储下来。所以，当Leader重启时，Leader会从第一条Log开始，执行每一条Log条目，并提交给应用程序。所以，重启之后，应用程序可以通过重复执行每一条Log来完全从头构建自己的状态。这是一种简单且优雅的方法，但是很明显会很慢。这将会引出我们的下一个话题：Log compaction和Snapshot。</p>
+<h2 id="7-5-Log-compaction-and-snapshots">7.5 Log compaction and snapshots</h2>
+<p>Log压缩和快照（Log compaction and snapshots）在Lab3b中出现的较多。在Raft中，Log压缩和快照解决的问题是：对于一个长期运行的系统，例如运行了几周，几个月甚至几年，如果我们按照Raft论文图2的规则，那么Log会持续增长。最后可能会有数百万条Log，从而需要大量的内存来存储。如果持久化存储在磁盘上，最终会消耗磁盘的大量空间。如果一个服务器重启了，它需要通过重新从头开始执行这数百万条Log来重建自己的状态。当故障重启之后，遍历并执行整个Log的内容可能要花费几个小时来完成。这在某种程度上来说是浪费，因为在重启之前，服务器已经有了一定的应用程序状态。</p>
+<p>为了应对这种场景，Raft有了快照（<code>Snapshots</code>）的概念。快照背后的思想是，<strong>要求应用程序将其状态的拷贝作为一种特殊的Log条目存储下来</strong>。我们之前几乎都忽略了应用程序，但是事实是，假设我们基于Raft构建一个key-value数据库，Log将会包含一系列的Put/Get或者Read/Write请求。假设一条Log包含了一个Put请求，客户端想要将X设置成1，另一条Log想要将X设置成2，下一条将Y设置成7。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823221906466.png" alt="image-20220823221906466"></p>
+<p>如果Raft一直执行没有故障，Raft之上的将会是应用程序，在这里，应用程序将会是key-value数据库。它将会维护一个表单，当Raft一个接一个的上传命令时，应用程序会更新它的表单。</p>
+<p>所以第一个命令之后，应用程序会将表单中的X设置为1。</p>
+<p>第二个命令之后，表单中的x会被设置为2。</p>
+<p>第三个命令之后，表单中的y会被设置为7。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823222018635.png" alt="image-20220823222018635"></p>
+<p>这里有个有趣的事实，那就是：对于大多数的应用程序来说，应用程序的状态远小于Log的大小。某种程度上我们知道，在某些时间点，Log和应用程序的状态是可以互换的，它们是用来表示应用程序状态的不同事物。但是Log可能包含大量的重复的记录（例如对于x的重复赋值），这些记录使用了Log中的大量的空间，但是同时却压缩到了key-value表单中的一条记录。这在多副本系统中很常见。在这里，如果存储Log，可能尺寸会非常大，相应的，如果存储key-value表单，这可能比Log尺寸小得多。这就是快照的背后原理。</p>
+<p>所以，当Raft认为它的Log将会过于庞大，例如大于1MB，10MB或者任意的限制，Raft会要求应用程序在Log的特定位置，对其状态做一个快照。所以，如果Raft要求应用程序做一个快照，Raft会从Log中选取一个与快照对应的点，然后要求应用程序在那个点的位置做一个快照。这里极其重要，因为我们接下来<strong>将会丢弃所有那个点之前的Log记录</strong>。如果我们有一个点的快照，那么我们可以安全的将那个点之前的Log丢弃。<strong>（在key-value数据库的例子中）快照本质上就是key-value表单</strong>。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823222207867.png" alt="image-20220823222207867"></p>
+<p>我们还需要为快照标注Log的槽位号。在这个图里面，这个快照对应的正好是槽位3。</p>
+<p>有了快照，并且Raft将它存放在磁盘中之后，Raft将不会再需要这部分Log。只要Raft持久化存储了快照，快照对应的Log槽位号，以及Log槽位号之后的所有Log，那么快照对应槽位号之前的这部分Log可以被丢弃，我们将不再需要这部分Log。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823222321907.png" alt="image-20220823222321907"></p>
+<p>所以这就是Raft快照的工作原理，Raft要求应用程序做快照，得到快照之后将其存储在磁盘中，同时持久化存储快照之后的Log，并丢弃快照之前的Log。所以，Raft的持久化存储实际上是持久化应用程序快照，和快照之后的Log。</p>
+<p>刚刚的回答可能有些草率。因为如果按照Raft论文的图2，你有时还是需要这些早期的Log（槽位1，2，3）。所以，在知道了有时候某些Log可能不存在的事实之后，你可能需要稍微重新理解一下图2。</p>
+<p>所以，重启的时候会发生什么呢？现在，重启的场景比之前只有Log会更加复杂一点。重启的时候，必须让Raft有方法知道磁盘中最近的快照和Log的组合，并将快照传递给应用程序。因为现在我们不能重演所有的Log（部分被删掉了），所以<strong>必须要有一种方式来初始化应用程序</strong>。所以应用程序不仅需要有能力能生成一个快照，它还需要能够吸纳一个之前创建的快照，并通过它稳定的重建自己的内存。所以，尽管Raft在管理快照，<strong>快照的内容实际上是应用程序的属性</strong>。Raft并不理解快照中有什么，只有应用程序知道，因为快照里面都是应用程序相关的信息。所以重启之后，应用程序需要能够吸纳Raft能找到的最近的一次快照。到目前为止还算简单。</p>
+<p>不幸的是，这里丢弃了快照之前的Log，引入了大量的复杂性。如果有的Follower的Log较短，在Leader的快照之前就结束，那么除非有一种新的机制，否则那个Follower永远也不可能恢复完整的Log。因为，如果一个Follower只有前两个槽位的Log，Leader不再有槽位3的Log可以通过<code>AppendEntries RPC</code>发给Follower，Follower的Log也就不可能补齐至Leader的Log。</p>
+<p>我们可以通过这种方式来避免这个问题：<strong>如果Leader发现有任何一个Follower的Log落后于Leader要做快照的点，那么Leader就不丢弃快照之前的Log</strong>。Leader原则上是可以知道Follower的Log位置，然后Leader可以不丢弃所有Follower中最短Log之后的本地Log。</p>
+<p>这或许是一个短暂的好方法，之所以这个方法不完美的原因在于，如果一个Follower关机了一周，它也就不能确认Log条目，同时也意味着Leader不能通过快照来减少自己的内存消耗（因为那个Follower的Log长度一直没有更新）。</p>
+<p>所以，Raft选择的方法是，<strong>Leader可以丢弃Follower需要的Log</strong>。所以，我们需要某种机制让AppendEntries能处理某些Follower Log的结尾到Leader Log开始之间丢失的这一段Log。解决方法是（一个新的消息类型）<code>InstallSnapshot RPC。</code></p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823222709018.png" alt="image-20220823222709018"></p>
+<p>当Follower刚刚恢复，如果它的Log短于Leader通过 AppendEntries RPC发给它的内容，那么它首先会强制Leader回退自己的Log。在某个点，Leader将不能再回退，因为它已经到了自己Log的起点。这时，<strong>Leader会将自己的快照发给Follower，之后立即通过AppendEntries将后面的Log发给Follower</strong>。</p>
+<p>不幸的是，这里明显的增加了复杂度。因为这里需要Raft组件之间的协同，这里还有点违反模块性，因为这里需要组件之间有一些特殊的协商。例如，当Follower收到了<code>InstallSnapshot</code>，这个消息是被Raft收到的，但是Raft实际需要应用程序能吸纳这个快照。所以它们现在需要更多的交互了。</p>
+<blockquote>
+<p>❓ ：快照的创建是否依赖应用程序？</p>
+<p>📖 ：肯定依赖。快照生成函数是应用程序的一部分，如果是一个key-value数据库，那么快照生成就是这个数据库的一部分。Raft会通过某种方式调用到应用程序，通知应用程序生成快照，因为只有应用程序自己才知道自己的状态（进而能生成快照）。而通过快照反向生成应用程序状态的函数，同样也是依赖应用程序的。但是这里又有点纠缠不清，因为每个快照又必须与某个Log槽位号对应。</p>
+</blockquote>
+<h2 id="7-6-Linearizability">7.6 Linearizability</h2>
+<p><code>linearizability</code>：线性一致性</p>
+<p>目前为止，我们还没有尝试去确定正确意味着什么？当一个多副本服务或者任意其他服务正确运行意味着什么？ 绝大多数时候，我都避免去考虑太多有关正确的精确定义。但事实是，当你尝试去优化一些东西，或者当你尝试去想明白一些奇怪的corner case，如果有个正式的方式定义什么是正确的行为，经常会比较方便。例如，当客户端通过RPC发送请求给我们的多副本服务时，可能是请求重发，可能是服务故障重启正在加载快照，或者客户端发送了请求并且得到了返回，但是这个返回是正确的吗？我们该如何区分哪个返回是正确的？所以，我们需要一个非常正式的定义来区分，什么是对的，什么是错的。</p>
+<p>我们对于正确的定义就是线性一致（<code>Linearizability</code>）或者说强一致（<code>Strong consistency</code>）。通常来说，线性一致等价于强一致。一个服务是线性一致的，那么它表现的就像只有一个服务器，并且服务器没有故障，这个服务器每次执行一个客户端请求，并且没什么奇怪的是事情发生。</p>
+<p>一个系统的执行历史是一系列的客户端请求，或许这是来自多个客户端的多个请求。如果执行历史整体可以按照一个顺序排列，且排列顺序与客户端请求的实际时间相符合，那么它是线性一致的。当一个客户端发出一个请求，得到一个响应，之后另一个客户端发出了一个请求，也得到了响应，那么这两个请求之间是有顺序的，因为一个在另一个完成之后才开始。一个线性一致的执行历史中的操作是非并发的，也就是时间上不重合的客户端请求与实际执行时间匹配。并且，每一个读操作都看到的是最近一次写入的值。</p>
+<p>首先，执行历史是对于客户端请求的记录，你可以从系统的输入输出理解这个概念，而不用关心内部是如何实现的。<strong>如果一个系统正在工作，我们可以通过输入输出的消息来判断，系统的执行顺序是不是线性一致的</strong>。接下来，我们通过两个例子来看，什么是线性一致的，什么不是。</p>
+<p>线性一致这个概念里面的操作，是从一个点开始，到另一个点结束。所以，这里前一个点对应了客户端发送请求，后一个点对应了收到回复的时间。我们假设，在某个特定的时间，客户端发送了请求，将X设置为1。</p>
+<p>过了一会，在第二条竖线处，客户端收到了一个回复。客户端在第一条竖线发送请求，在第二条竖线收到回复。</p>
+<p>过了一会，这个客户端或者其他客户端再发送一个请求，要将X设置为2，并收到了相应的回复。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823224921383.png" alt="image-20220823224921383"></p>
+<p>同时，某个客户端发送了一个读X的请求，得到了2。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823224932454.png" alt="image-20220823224932454"></p>
+<p>同时，还有一个读X的请求，得到值是1的响应。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823225100938.png" alt="image-20220823225100938"></p>
+<p>如果我们观察到了这样的输入输出（执行历史），那么这样的执行历史是线性一致的吗？生成这样结果的系统，是一个线性一致的系统吗？或者系统在这种场景下，可以生成线性一致的执行历史吗？如果执行历史不是线性一致的，那么至少在Lab3，我们会有一些问题。所以，我们要分析并弄清楚，这里是不是线性一致的？</p>
+<p>要达到线性一致，我们需要为这里的4个操作生成一个线性一致的顺序。所以我们现在要确定顺序，对于这个顺序，有两个限制条件：</p>
+<p>1️⃣ 如果一个操作在另一个操作开始前就结束了，那么这个操作必须在执行历史中出现在另一个操作前面。</p>
+<p>2️⃣ 执行历史中，读操作，必须在相应的key的写操作之后。</p>
+<p>所以，这里我们要为4个操作创建一个顺序，两个读操作，两个写操作。我会通过箭头来标识刚刚两个限制条件，这样生成出来的顺序就能满足前面的限制条件。第一个写结束之后，第二个写才开始。所以一个限制条件是，在总的顺序中，第一个写操作必须在第二个写操作前面。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823225514605.png" alt="image-20220823225514605"></p>
+<p>第一个读操作看到的是值2，那么在总的顺序中，这个读必然在第二个写操作后面，同时第二个写必须是离第一个读操作最近一次写。所以，这意味着，在总的顺序中，我们必须先看到对X写2，之后执行读X才能得到2。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823225632158.png" alt="image-20220823225632158"></p>
+<p>第二个读X得到的是值1。我们假设X的值最开始不是1，那么会有下图的关系，因为读必须在写之后。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823225721135.png" alt="image-20220823225721135"></p>
+<p>第二个读操作必须在第二个写操作之前执行，这样写X为1的操作才能成为第二个读操作最近一次写操作。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823225807349.png" alt="image-20220823225807349"></p>
+<p>或许还有一些其他的限制，但是不管怎样，<strong>我们将这些箭头展平成一个线性一致顺序来看看真实的执行历史，我们可以发现总的执行历史是线性一致的</strong>。首先是将X写1，之后是读X得到1，之后将X写2，之后读X得到2。（这里可以这么理解，左边是一个多副本系统的输入输出，因为分布式程序或者程序的执行，产生了这样的时序，但是在一个线性一致的系统中，实际是按照右边的顺序执行的操作。左边是实际时钟，右边是逻辑时钟。）</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823230445803.png" alt="image-20220823230445803"></p>
+<p>所以这里有个顺序且符合前面两个限制条件，所以执行历史是线性一致的。如果我们关心一个系统是否是线性一致的，那么这个例子里面的输入输出至少与系统是线性一致的这个假设不冲突。</p>
+<p>让我再写一个不是线性一致的例子。我们假设有一个将X写1的请求，另一个将X写2的请求，还有一些读操作。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823230845304.png" alt="image-20220823230845304"></p>
+<p>这里我们也通过箭头来表示限制，最后得到相应的执行顺序。因为第一个写操作在第二个写操作开始之前就结束，在我们生成的顺序中，它必须在第二个写操作之前。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823231131620.png" alt="image-20220823231131620"></p>
+<p>第二个写操作，写的值是2，所以必须在返回2的读操作之前，所以我们有了这样一条箭头。</p>
+<p>返回2的读操作，在返回1的读操作开始之前结束.</p>
+<p>因为返回1的读操作必须在设置1的写操作之后，并且更重要的是，必须要在设置2的写操作之前。因为我们不能将X写了2之后再读出1来。所以我们有了这样的箭头。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20220823231314186.png" alt="image-20220823231314186"></p>
+<p>因为这里的限制条件有个循环，所以没有一个线性一致的顺序能够满足前面的限制条件，因此这里的执行历史不是线性一致的，所以生成这样结果的系统不是线性一致的系统。但是只要去掉循环里面的任意一个请求，就可以打破循环，又可以是线性一致的了。</p>
+<h2 id="补充">补充</h2>
+<p>传统的关系型数据库事务具备ACID：</p>
+<blockquote>
+<p>A :原子性</p>
+<p>C :一致性</p>
+<p>I :独立性</p>
+<p>D :持久性</p>
+</blockquote>
+<p>分布式数据库的CAP:<br>
+1️⃣ <strong>C（Consistency）：强一致性</strong></p>
+<blockquote>
+<p>“all nodes see the same data at the same time”,即更新操作成功并返回客户端后，所有节点在同一时间的数据完全一致，这就是分布式的一致性。一致性的问题在并发系统中不可避免，对于客户端来说，一致性指的是并发访问时更新过的数据如何获取的问题。从服务端来看，则是更新如何复制分布到整个系统，以保证数据最终一致。</p>
+</blockquote>
+<p>2️⃣ <strong>A（Availability）：高可用性</strong></p>
+<blockquote>
+<p>可用性指“Reads and writes always succeed”，即服务一直可用，而且要是正常的响应时间。好的可用性主要是指系统能够很好的为用户服务，不出现用户操作失败或者访问超时等用户体验不好的情况。</p>
+</blockquote>
+<p>3️⃣ <strong>P（Partition tolerance）：分区容错性</strong></p>
+<blockquote>
+<p>即分布式系统在遇到某节点或网络分区故障时，仍然能够对外提供满足一致性或可用性的服务。分区容错性要求能够使应用虽然是一个分布式系统，而看上去却好像是在一个可以运转正常的整体。比如现在的分布式系统中有某一个或者几个机器宕掉了，其他剩下的机器还能够正常运转满足系统需求，对于用户而言并没有什么体验上的影响。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yijunquan-afk.github.io">JunQuan Yi</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yijunquan-afk.github.io/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/">https://yijunquan-afk.github.io/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yijunquan-afk.github.io" target="_blank">雨落俊泉</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%A6%E4%B9%A0/">分布式学习</a></div><div class="post_share"><div class="social-share" data-image="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/"><img class="next-cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MIT课程分布式系统学习06——Fault Tolerance raft1</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/08/10/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A001%E2%80%94%E2%80%94Introduction/" title="MIT课程分布式系统学习01——Introduction"><img class="cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-10</div><div class="title">MIT课程分布式系统学习01——Introduction</div></div></a></div><div><a href="/2022/08/12/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A002/" title="MIT课程分布式系统学习02——RPC and threads"><img class="cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173701.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-12</div><div class="title">MIT课程分布式系统学习02——RPC and threads</div></div></a></div><div><a href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A003/" title="MIT课程分布式系统学习03——GFS"><img class="cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-17</div><div class="title">MIT课程分布式系统学习03——GFS</div></div></a></div><div><a href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A004%E2%80%94/" title="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance"><img class="cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-17</div><div class="title">MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance</div></div></a></div><div><a href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/" title="MIT课程分布式系统学习06——Fault Tolerance raft1"><img class="cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-19</div><div class="title">MIT课程分布式系统学习06——Fault Tolerance raft1</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/mmexport1659410440620.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">JunQuan Yi</div><div class="author-info__description">记录学习与生活</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yijunquan-afk"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">自由快乐</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">MIT课程分布式系统学习07——Fault Tolerance raft2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">1.1.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1-Log-Backup"><span class="toc-number">1.2.</span> <span class="toc-text">7.1 Log Backup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2-Election-Restriction"><span class="toc-number">1.3.</span> <span class="toc-text">7.2 Election Restriction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3-Log-Entries-Rollback-Scheme"><span class="toc-number">1.4.</span> <span class="toc-text">7.3 Log Entries Rollback Scheme</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-4-Persistence"><span class="toc-number">1.5.</span> <span class="toc-text">7.4 Persistence</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-5-Log-compaction-and-snapshots"><span class="toc-number">1.6.</span> <span class="toc-text">7.5 Log compaction and snapshots</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-6-Linearizability"><span class="toc-number">1.7.</span> <span class="toc-text">7.6 Linearizability</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85"><span class="toc-number">1.8.</span> <span class="toc-text">补充</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/" title="MIT课程分布式系统学习07——Fault Tolerance raft2"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习07——Fault Tolerance raft2"/></a><div class="content"><a class="title" href="/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/" title="MIT课程分布式系统学习07——Fault Tolerance raft2">MIT课程分布式系统学习07——Fault Tolerance raft2</a><time datetime="2022-08-23T15:17:07.000Z" title="发表于 2022-08-23 23:17:07">2022-08-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/" title="MIT课程分布式系统学习06——Fault Tolerance raft1"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习06——Fault Tolerance raft1"/></a><div class="content"><a class="title" href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/" title="MIT课程分布式系统学习06——Fault Tolerance raft1">MIT课程分布式系统学习06——Fault Tolerance raft1</a><time datetime="2022-08-19T13:56:06.000Z" title="发表于 2022-08-19 21:56:06">2022-08-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A004%E2%80%94/" title="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance"/></a><div class="content"><a class="title" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A004%E2%80%94/" title="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance">MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance</a><time datetime="2022-08-17T12:42:37.000Z" title="发表于 2022-08-17 20:42:37">2022-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A003/" title="MIT课程分布式系统学习03——GFS"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习03——GFS"/></a><div class="content"><a class="title" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A003/" title="MIT课程分布式系统学习03——GFS">MIT课程分布式系统学习03——GFS</a><time datetime="2022-08-16T16:41:00.000Z" title="发表于 2022-08-17 00:41:00">2022-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/12/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A002/" title="MIT课程分布式系统学习02——RPC and threads"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173701.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习02——RPC and threads"/></a><div class="content"><a class="title" href="/2022/08/12/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A002/" title="MIT课程分布式系统学习02——RPC and threads">MIT课程分布式系统学习02——RPC and threads</a><time datetime="2022-08-12T02:18:48.000Z" title="发表于 2022-08-12 10:18:48">2022-08-12</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 By JunQuan Yi</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
