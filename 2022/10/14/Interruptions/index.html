@@ -1,0 +1,447 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读 | 雨落俊泉</title><meta name="keywords" content="-云原生系统 -强化学习"><meta name="author" content="JunQuan Yi"><meta name="copyright" content="JunQuan Yi"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="原文获取：Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 技术文章：Advancing failure prediction and mitigation—introducing Narya  Abstract 当生产系统发生故障时，优先做法是迅速缓解它。尽管这很重要，但">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读">
+<meta property="og:url" content="https://yijunquan-afk.github.io/2022/10/14/Interruptions/index.html">
+<meta property="og:site_name" content="雨落俊泉">
+<meta property="og:description" content="原文获取：Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 技术文章：Advancing failure prediction and mitigation—introducing Narya  Abstract 当生产系统发生故障时，优先做法是迅速缓解它。尽管这很重要，但">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png">
+<meta property="article:published_time" content="2022-10-14T13:05:39.000Z">
+<meta property="article:modified_time" content="2022-10-14T13:10:43.750Z">
+<meta property="article:author" content="JunQuan Yi">
+<meta property="article:tag" content="-云原生系统 -强化学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png"><link rel="shortcut icon" href="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/logo.jpeg"><link rel="canonical" href="https://yijunquan-afk.github.io/2022/10/14/Interruptions/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-10-14 21:10:43'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/bg.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/mmexport1659410440620.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">雨落俊泉</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-10-14T13:05:39.000Z" title="发表于 2022-10-14 21:05:39">2022-10-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-10-14T13:10:43.750Z" title="更新于 2022-10-14 21:10:43">2022-10-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F%E7%B3%BB%E7%BB%9F%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D%E8%AE%BA%E6%96%87/">云原生系统故障恢复论文</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221011201528810.png" alt="image-20221011201528810"></p>
+<blockquote>
+<p>原文获取：<a target="_blank" rel="noopener" href="https://www.usenix.org/conference/osdi20/presentation/levy">Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions</a></p>
+<p>技术文章：<a target="_blank" rel="noopener" href="https://azure.microsoft.com/en-au/blog/advancing-failure-prediction-and-mitigation-introducing-narya/">Advancing failure prediction and mitigation—introducing Narya</a></p>
+</blockquote>
+<h2 id="Abstract">Abstract</h2>
+<p>当生产系统发生故障时，优先做法是迅速缓解它。尽管这很重要，但故障缓解是以被动和特定的方式进行的：只有在观察到严重症状后才采取一些固定操作。对于云系统来说，这样的策略是不充分的。在本文中，我们提出了一个预防性和适应性的故障缓解服务——Narya，它被整合在一个云生产环境，即微软Azure的计算平台中**。Narya根据多层系统信号预测即将发生的主机故障，然后决定智能缓解操作**。其目的是避免虚拟机故障。Narya的决策引擎采取一种新颖的在线实验方法，不断探索最佳的缓解操作。Narya通过强化学习进一步增强了自适应决策能力。目前Narya已经在生产中运行了15个月。与之前的静态策略相比，它平均减少了26%的虚拟机中断。</p>
+<h2 id="1-Introduction">1 Introduction</h2>
+<p>一旦发生故障，如何快速检测和缓解故障，使系统能够继续运行？</p>
+<p><strong>缓解故障意味着尝试使故障症状消失，而不必先诊断和修复潜在的错误</strong>。而对于大型云服务设施来说，故障后的检测与缓解是无法满足的，这是因为用户体验会受到影响。更何况对于大型系统而言，故障缓解需要时间，而加速缓解甚至可能使情况恶化</p>
+<p>因此，云系统还应该设计技术来解决以下问题：<strong>故障是否迫在眉睫，如果是，应该采取什么预防措施来避免这种故障？</strong></p>
+<p>最近的一些<strong>只关注于预测本身</strong>，目的是提醒运营商。而预测到底带来了多少好处，更重要的是，系统应该采取什么预防性缓解措施来响应预测的故障，这些仍然悬而未决。回答这些问题需要一个全面的解决方案，该解决方案紧密集成在系统的控制回路中，不仅<font color="red"><strong>实时预测主机故障，而且自动决定适当的缓解措施，权衡收益，并根据权衡的收益不断调整其行为</strong></font>。</p>
+<p>本文提出的Narya是一种端到端服务，具有预测性的智能故障缓解功能，完全集成在Azure计算平台中，用于其虚拟机(VM)主机环境。Narya的设计目标是<strong>提前预防VM故障，增强Azure计算平台的自我管理能力，为客户提供流畅的VM体验</strong>。</p>
+<p>静态策略：根据症状和领域知识做出解决行为。</p>
+<p>使用静态的策略不明智：由于具有多租户、不同的基础架构组件和多样化的客户工作负载，很难预先对大型云系统中的不同故障场景进行全面分类并确定好的缓解措施(或其参数)，尤其是在不尝试的情况下。而且云系统时刻在变化，一些在过去十分有效的缓解行为目前可能无法起效。</p>
+<blockquote>
+<p>例如，最初在接收到预测故障信号时重新启动主机节点可能是有效的，因为系统故障往往是由一些暂时的硬件问题引起的；但逐渐地，永久性节点故障变得更加常见，因此重新启动不再是最佳缓解措施，而将虚拟机从预测为发生故障的节点实时迁移到健康节点可能是更好的措施</p>
+</blockquote>
+<p>在复杂和不断变化的系统中采取一些缓解措施的有效性通常是概率的，因为影响它的因素太多，我们通常事先不知道某种缓解措施是否好或者是否有更好的措施，除非我们去进行尝试。</p>
+<p>基于此，Narya采取了一种<strong>新颖的在线实验方法</strong>。具体地说，Narya预测生产机群中的主机节点是否可能出现故障，然后利用A/B测试来持续试验不同的缓解措施，权衡好处，找出最佳措施。A/B测试策略背后的基本原理是，它在本质上引入了随机化，具有统计学意义。A/B测试缺点是：是在找到统计学意义之前探索每个动作需要有消耗，然后总是选择估计出的最佳操作。</p>
+<p>这是一个<code>exploration-exploitation</code>权衡问题。</p>
+<blockquote>
+<p>学习主体是否应该重复迄今运作良好的缓解操作，即<code>exploit</code>，还是应该尝试一些新的选择，以期获得更好的回报，即<code>explore</code>。</p>
+</blockquote>
+<p>而我们通过以下方法增强Narya的决策引擎：<font color="red"><strong>multi-armed Bandit模型</strong></font>。</p>
+<p>本文的主要贡献有：</p>
+<ul>
+<li>提出了一个全面的故障避免解决方案，其中包括故障预测、新的故障缓解措施和智能缓解策略。</li>
+<li>设计了一种新的方法，使用A/B测试进行生产工作负载的在线实验，以自动识别良好的故障缓解措施。</li>
+<li>探索了一种更高级的强化学习方法，以优化缓解行为的选择。</li>
+<li>在大规模生产云服务Azure中对建议的解决方案进行了评估，以验证其有效性。</li>
+</ul>
+<h2 id="2-Background-and-Motivation">2 Background and Motivation</h2>
+<p>传统系统的运行周期是：检测到故障；开发人员诊断故障并找出根本原因；编写补丁；重新部署系统。<strong>对于云系统，以这种精确的顺序运行是有问题的，因为确定根本原因和开发修复程序所需的时间通常很长，超过了预算。一旦检测到故障，应当首先应用一些缓解操作，如重启，而不一定要知道错误原因。</strong></p>
+<h3 id="2-1-Target-System-and-Goal">2.1 Target System and Goal</h3>
+<p>我们的特定目标系统是Azure计算平台中的VM主机环境，即节点。</p>
+<p>我们的目标是进一步开发预测主机环境是否会很快出现故障的技术，并在多种选择中自动决定适当的缓解策略，最终目标是避免未来的VM故障事件</p>
+<h3 id="2-2-Are-Failures-Predictable">2.2 Are Failures Predictable?</h3>
+<p>要预测故障，有两个基本要求：(Ⅰ)迫在眉睫的故障不是突然发生的；(Ⅱ)有遥测记录以指示退化。</p>
+<p>一种可预见的硬件问题是某些硬件部件磨损。我们可以用<strong>年龄或磨损率</strong>来预测。结合其他系统信号(如工作负载模式)，我们可以预测主机是否会很快出现故障。</p>
+<p>我们也可以使用<strong>资源使用趋势</strong>来预测它们。如果失败与某些隐藏因素相关，例如超时设置、与计时器相关的错误和发布计划，则它们也可能在可预测的基础上发生。</p>
+<h3 id="2-3-Why-Reacting-on-Predicted-Failure">2.3 Why Reacting on Predicted Failure?</h3>
+<p>对于云服务，如果预测到了失败而不去恢复，会使客户的虚拟机收到中断的危险，影响客户使用体验。</p>
+<p>下表中举例说明了：如果预测到某个节点较有可能发生故障，但是没有去实施预防措施，会造成较为严重的后果。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012151147070.png" alt="image-20221012151147070" style="zoom:67%;" />
+<h3 id="2-4-Why-Static-Mitigation-Is-Insufficient">2.4 Why Static Mitigation Is Insufficient?</h3>
+<p>对于传统的静态策略，所有预测的坏节点都将使用相同的缓解策略：</p>
+<ol>
+<li>阻塞节点上的资源分配。</li>
+<li>尝试动态迁移虚拟机。</li>
+<li>等待7天后，短命的虚拟机就会被客户销毁。</li>
+<li>强制迁移剩余的虚拟机。</li>
+<li>将节点标记为脱机并将送去修复。</li>
+</ol>
+<p><strong>尽管这一计划看起来合理，但它很快就面临限制</strong>。阻塞分配会导致容量压力，而对于一些预测的故障，避免分配可能会更好。有些故障可能太严重，无法执行实时迁移(例如，磁盘损坏)。如果节点在7天后仍然运行正常，则强制迁移会对客户造成不必要的影响。当容量较低时，将节点标记为离线也不太理想</p>
+<p>使用静态分配使我们无法知道如果我们选择了不同的操作会发生什么，从而无法知道我们优化了多少用户体验，以及无从得知我们是否使用了最佳操作。还有，静态缓解会受到系统变化的影响，之前起效的方法在系统变化后可能就无法生效。</p>
+<p>使用静态分配使我们无法知道如果我们选择了不同的操作会发生什么，从而无法知道我们节省了多少客户的痛苦，或者我们是否使用了最佳操作。</p>
+<p>静态故障缓解的另一个限制是，它导致开发人员倾向于根据一些孤立的情况对缓解分配进行特别修改。</p>
+<h2 id="3-Overview">3 Overview</h2>
+<p>我们设计了Narya，这是一个集成在Azure计算平台中的端到端服务，用于预测主机故障，并自动决定对每个预测的故障采取什么缓解措施。Narya的设计目标是避免潜在的VM故障，同时将对客户的影响降至最低。Narya以两种方式推进了当前的故障缓解实践：(i)将现有的静态特定的缓解任务替换为<strong>自适应和系统化的</strong>决策算法；以及(ii)将传统的被动的、故障后的缓解活动转变为<strong>主动故障避免机制</strong>。</p>
+<h3 id="3-1-Narya-Workflow">3.1 Narya Workflow</h3>
+<p>Narya采用了一种新颖的在线实验和学习方法来解决故障缓解问题。图1显示了Narya中的高级工作流概述。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012152535452.png" alt="image-20221012152535452"></p>
+<p>① Azure中的每个节点都部署有监控代理收集有关主机环境的各种遥测信号。</p>
+<p>② Narya中的<strong>预测组件</strong>持续使用这些信号，并预测某个节点是否很快会发生故障。预测基于两种方法：</p>
+<p>​	2.a 使用不变的领域规则。</p>
+<p>​	2.b 运行机器学习接口。</p>
+<p>③ 每个预测结果都作为缓解请求流进入Narya中的<strong>决策组件</strong>。决策基于两种策略：</p>
+<p>​	3.a A/B测试</p>
+<p>​	3.b Bandit模型</p>
+<p>④ 决策组件计算适用于缓解操作选择的概率分布然后根据分布情况选择缓解行为。</p>
+<p>⑤ 缓解控制器将所选择的缓解动作应用于可疑节点。</p>
+<p>整个过程是一个自动反馈循环，可优化关键目标指标——虚拟机中断率。</p>
+<p>⑥ Narya观察到缓解操作的影响。</p>
+<p>⑦ 根据⑥的观测更新预测和决策组件。</p>
+<h3 id="3-2-Key-Optimization-Metric">3.2 Key Optimization Metric</h3>
+<p>在Azure中，我们重点关注的指标为<code>Annual Interruption Rate</code>(AIR)，定义如下：<br>
+$$<br>
+AIR=\frac{\text{VM interruption count in }T}{\text{Total VM lifetime in }T}\times 365 \text{ days}\times 100\text{ VMs}<br>
+$$<br>
+T是任何给定的测量间隔持续时间，以天为单位。本文中的VM中断主要是指重启或丢失心跳。</p>
+<h3 id="3-3-Challenges">3.3 Challenges</h3>
+<p>我们遇到了一些设计挑战：</p>
+<ul>
+<li>首先，由于根本原因未知，故障缓解必须在<strong>信息不完整</strong>的情况下采取操作。对于Narya来说，由于失败尚未发生，这一挑战更加紧迫。</li>
+<li>其次，由于云系统的规模庞大，决策逻辑中需要考虑的因素很多。<strong>Narya必须足够强大，同时仍具有灵活性。</strong></li>
+<li>第三，经验表明，在将故障预测整合到生产云系统中时，由于复杂的系统环境、大量的噪声信号、意外的客户工作负载等原因，<strong>误报是不可避免的。在使用预测结果时，缓解机制应考虑到这一点，并以将不可避免的误报造成的影响降至最低的方式运行</strong>。</li>
+<li>最后，故障缓解是一个任务关键型过程。如果设计不当，决策引擎可能弊大于利。<strong>确保安全应该是Narya的首要任务。</strong></li>
+</ul>
+<h2 id="4-Predicting-Node-Failures">4 Predicting Node Failures</h2>
+<h3 id="4-1-Input-Signals">4.1 Input Signals</h3>
+<ol>
+<li>Narya利用来自主机环境的整个堆栈的遥测信号，以进行预测。**对于硬件和固件，监控代理从磁盘SMART属性、内存（例如，无法纠正的错误）、CPU（例如，机器检查错误）、主板（例如，总线错误）等收集低级别的日志。更高层次的信号来源来自设备驱动程序，例如，超时事件。**这类事件的重复发生往往是即将发生故障的一个指标。</li>
+<li>Narya进一步利用<strong>关键的操作系统事件和聚合应用性能计数器</strong>。</li>
+<li>预测器使用的另一个重要信号来源是<strong>控制面操作的结果</strong>。例如，重复的虚拟机创建操作错误可能表明严重的主机问题，即使主机看起来仍然在运行。</li>
+</ol>
+<h3 id="4-2-Rule-based-Prediction">4.2 Rule-based Prediction</h3>
+<p>基于规则的预测利用了来自硬件、固件和软件专家的领域知识。我们分析常见的故障模式和可用的遥测信号，以预测对客户有重大影响的故障。例如，在某些情况下，CPU内部错误(IERR)是节点很快将再次出现故障的良好指示器；如果IERR在30天内出现两次，则预测规则可以标记该节点。规则通常编写为Json文件、Python脚本，有时也编写为C++。由于规则是手动编写的，因此它们简单易懂。预测规则直接部署在主机中，可以快速执行。我们总共使用了51条规则。</p>
+<h3 id="4-3-Learning-based-Prediction">4.3 Learning-based Prediction</h3>
+<p>先前的工作使用有监督的学习来预测磁盘故障和节点故障。我们基于学习的预测与先前的解决方案一致。主要区别在于，我们关注的是<strong>影响用户体验的整体主机运行状况和故障</strong>，而不是单个组件的故障。正因为如此，Narya跨层分析了更多不同的信号，例如控制平面操作信号。</p>
+<h4 id="Prediction-Horizon-and-Label">Prediction Horizon and Label</h4>
+<p>为了得到准确和有用的预测结果，我们只使用导致客户影响的主机故障，并在诊断过程中确认是由某些硬件组件故障导致的。</p>
+<p>对于一个给定的主机故障，如果它发生在时间t，我们为从$t - 1$到$t - n$的信号分配正（故障）标签，其中$n$是预测范围，$h$为单位。我们为$t - (n + 1)$的信号分配负的（正常）标签。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012163421221.png" alt="image-20221012163421221"></p>
+<p><strong>在生产环境中，我们的预测期设置为7天。</strong></p>
+<h4 id="Machine-Learning-Model">Machine Learning Model</h4>
+<p>Narya使用信号、标签和主机元数据训练二元分类器，预测器输出主机的故障概率(我们使用0.5作为分界值)。</p>
+<p>为了训练分类器，我们使用监督学习中常用的<strong>梯度提升树模型</strong>（<code>gradient boosted tree model</code>），它将来自一系列简单决策树的决策与称为梯度上升的模型集成技术相结合。</p>
+<p>我们进一步探索了通过使用<strong>基于注意力的深度学习模型</strong>（<code>attention-based deep learning model</code>）直接学习特征来减少特征工程的工作量。<strong>在高层次上，我们的目标是学习空间特征和时间特征。</strong></p>
+<ul>
+<li>空间特征将一个组件与其相邻组件进行比较。例如，一台主机通常在RAID0下配置了多个磁盘，因此它们的性能应该是相似的。如果一个磁盘的性能比其相邻磁盘差，则可能表示即将发生主机故障。基于注意力的深度模型旨在捕捉这种模式，以便将更多的权重(注意力)分配给异常的邻居。</li>
+<li>而时间特征表征了组件随时间的变化。</li>
+</ul>
+<p>图3显示了该模型的结构。总体而言，该模型比具有手工功能的决策树模型实现了5-10%的改进。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012164414075.png" alt="image-20221012164414075" style="zoom:80%;" />
+<h2 id="5-Mitigation-Actions">5 Mitigation Actions</h2>
+<p>当一个主机被预测会失败时，Narya会在几种可能的操作中进行选择。表2列出了Azure中的主要基本操作。减轻故障通常需要多个基本操作。<strong>Narya缓解引擎专注于探索预先定义的复合操作</strong>(表2)。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012164750138.png" alt="image-20221012164750138"></p>
+<h4 id="Live-Migration">Live Migration</h4>
+<p>将一个正在运行的虚拟机以最小的中断从一个主机移动到另一个主机。迁移过程包括虚拟机的内存、处理器和虚拟设备状态的迁移。并不是所有vm都有资格进行LM, LM可能因为各种原因而失败。</p>
+<h4 id="VM-Preserving-Soft-Reboot">VM Preserving Soft Reboot</h4>
+<p>可在主机操作系统重启后保留 VM 状态。主机操作系统内核被重新加载到内存中，虚拟机的内存和设备状态被持久化到新加载的内核中。重新加载的内核启动后，持久化状态将被恢复，而先前内核中的其余状态将被丢弃。恢复后的虚拟机短暂暂停，类似于Live Migration。</p>
+<h4 id="Service-Healing">Service Healing</h4>
+<p>用于恢复不健康或故障虚拟机的服务可用性。服务治疗适用于更一般的场景。虚拟机将被关机或断开网络。控制器为健康节点生成VM的新分配。在这个过程中，会有一些中断。</p>
+<h4 id="Mark-Unallocatable">Mark Unallocatable</h4>
+<p>在一段时间$T$(默认为7天)内，禁止向主机分配新虚拟机。</p>
+<p>在$UA-LM-HI$模式下，控制器在标记主机不可分配后，尝试将该主机上的虚拟机热迁移到其他主机上。在所有虚拟机被客户迁移或销毁后，或该主机发生故障后，该主机将被送往诊断。如果在不可分配周期$T$的末尾，一些VM仍然在运行(例如，因为它们不符合LM的条件)，我们会在将主机推入诊断之前对它们进行服务治疗。</p>
+<p>$UA-LM-RH$是$UA-LM-HI$的变体，其中我们在$T$末尾解除阻塞分配(重置节点运行状况)。</p>
+<p>在$UA-SR$中，控制器阻塞分配，然后尝试内核软重启操作。如果软重启成功，控制器将解除分配阻塞。否则，我们使用一种备用策略，通常是$LM-HI$。</p>
+<h4 id="Avoid">Avoid</h4>
+<p><strong>通知分配器尽量避免在该主机上添加新的虚拟机</strong>。阻塞分配对容量有很大的影响因此，可以同时标记为不可分配的主机数量是有限的。避免操作<strong>提供了一个较弱的约</strong>束。主机故障的行为仍然是将其发送到诊断。在$T$结束时，我们重置节点可用性。</p>
+<h4 id="NoOp">NoOp</h4>
+<p>NoOp是针对预测故障的一种特殊操作，在这种操作中<strong>控制器不采取任何操作</strong>。这是衡量预测和采取操作的益处的基线。</p>
+<h2 id="6-Decision-Logic-for-Adaptive-Mitigation">6 Decision Logic for Adaptive Mitigation</h2>
+<h3 id="6-1-Online-Experimentation-with-A-B-testing">6.1 Online Experimentation with A/B testing</h3>
+<p>选择缓解措施的一种直接方法是离线估计每种可能措施对预测故障的影响。根据我们的经验，考虑到云系统的复杂性，如果不在生产中进行试验，就很难估计操作的影响并知道哪个操作执行得最好。基于这一见解，<strong>Narya 采用在线实验方法，通过大规模测试来评估不同的缓解措施</strong></p>
+<p>A/B测试，又称在线实验，是前端设计中广泛使用的测试UI功能效果的方法。Narya采用A/B测试方法，并将其用于发现良好的缓解操作。在经典的A/B测试中，一个实验对应一个UI功能，一个单元对应一个用户。<strong>对于Narya来说，一个实验对应缓解一个失败预测(例如，CPU IERR，缓慢的内存访问延迟)，一个单元对应一个由相应预测规则/模型标记的节点的故障缓解请求。</strong></p>
+<p>Narya中A/B测试的工作流如下：</p>
+<p>① 每个预测节点一相同的概率被分配给不同的动作组合。</p>
+<p>② 在采取每个操作之后，我们在观察窗口内测量对客户的影响。</p>
+<p>③ 我们使用<font color="red"><strong>假设检验</strong></font>来测试一个行为是否比其他行为产生的客户影响更小。</p>
+<p>④ 一旦达到统计学特性，我们就认为这种影响最小的操作是最优的，并将其应用于所有节点</p>
+<p>⑤ 持续监测每个节点对所使用的操作的客户影响</p>
+<p>⑥ 如果客户影响显著增加，我们会运行新的A/B测试实验，以验证操作仍然是最优的。</p>
+<h4 id="Cost">Cost</h4>
+<p>我们使用观察窗口期间节点中的VM中断次数，以及在实时迁移或服务修复中将VM迁移到的节点中的VM中断数来作为cost标准。</p>
+<p>我们目前通过限制可以同时为同一群集中的同一规则标记为不可分配的节点数来合并容量约束。这样，容量就会间接影响将节点标记为不可分配的成本。</p>
+<h4 id="Assignment-Strategy">Assignment Strategy</h4>
+<p>A/B测试的一个关键点是为故障预测器标记的每个节点决定它应该进入哪个实验组。在经典的A/B测试中，每个实验单元都是随机分配的，前提是这些单元是独立且同分布的。</p>
+<p>对于Narya，我们做了几个改变。</p>
+<ul>
+<li>
+<p><strong>对于每个节点，通过节点ID和实验名称的散列来确定组(图4)；</strong><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012171459976.png" alt="image-20221012171459976"></p>
+</li>
+<li>
+<p><strong>Narya允许同时进行不同的实验。<strong>有些试验是相互影响的，我们需要测试所有的动作组合。例如，对于测试动作{a，b}的实验X和测试动作{c，d}的</strong>相关实验Y</strong>，我们需要有采用以下四种场景中的每一种的观察：(a，c)、(a，d)、(b，c)、(b，d)。</p>
+</li>
+</ul>
+<h4 id="Action-Overriding">Action Overriding</h4>
+<p>由于许多故障处理策略(包括我们的A/B实验)可以同时发生，因此一个主机可能会被标记为几个预测规则。因此，宿主可能需要同时执行不同的复合操作</p>
+<p>为了处理这种情况，Narya根据表2中的顺序使用了特定的覆盖逻辑：<strong>优先级高的覆盖优先级低的，优先级相同则尊重较早的操作。</strong></p>
+<h4 id="Effect-Observation-and-Attribution">Effect Observation and Attribution</h4>
+<p>由于操作的复杂性，一些操作需要更长的时间才能触发。在决策和操作开始之间的这段时间内，可能会发生无关的VM中断。然而，为了公平地比较操作，我们仍然应该计算这个时间段中的成本，因为对于瞬时操作，不可能区分操作造成的成本和不相关的成本。与覆盖一样，我们监视决策而不是操作，因此<strong>我们使用决策时间而不是操作时间作为观察窗口的开始</strong>。</p>
+<p>图5显示了一个示例，其中如果我们使用实际操作时间，我们将忽略一个操作而不是另一个操作的一些不相关的重启，而这些重启发生在两个组中。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012172537192.png" alt="image-20221012172537192"></p>
+<h4 id="Hypothesis-Testing">Hypothesis Testing</h4>
+<p>由于我们的成本函数复杂且依赖于外部变量，因此我们假设每个节点的VM重启次数是<strong>独立同分布并服从正态分布</strong>，从而简化了假设检验。</p>
+<p>由于不同的操作会在很大程度上改变每个节点的VM重启，因此我们不会假定不同的操作具有相同的差异。</p>
+<p>在这些假设下，我们使用<code>Welch's t-test</code>来测试两个操作，使用<code>Welch ANOVA</code>来测试三个或更多的操作。在后者中，我们使用事后分析来删除所有统计学上较差的操作，直到剩下一个操作。</p>
+<h3 id="6-2-Bandit-Modeling">6.2 Bandit Modeling</h3>
+<p>A/B测试的一个缺点是它的静态组分配。在统计学意义之前，我们不会利用各组之间的估计差异来最小化我们的成本，而一旦实验达到统计学意义，我们几乎总是会使用发现的最佳行动。这实质上是典型的$exploration-exploitation$困境。</p>
+<p>$Multi-Armed Bandits$ 问题：目标是通过确保<strong>在探索潜在的更好的行动和利用发现的最佳行动之间的保持平衡</strong>，使对客户的影响随着时间的推移最小化</p>
+<p>在训练时，我们观察元组<code>(node, rule, chosen action, cost)</code>来估计选择每个操作的概率；而在服务时间，我们将请求元组(节点、规则)与学习的操作进行匹配。</p>
+<h4 id="Actions">Actions</h4>
+<p>Bandit模型的输出是我们要尝试的复合操作。每个实验通常基于对预测信号特性的离线分析来定义可用动作：假阳性率、故障/影响时间和操作可行性。</p>
+<h4 id="Exploration-Algorithm">Exploration Algorithm</h4>
+<p>我们需要在短期和长期利益之间取得平衡。我们试验了多种不同的探索模型，包括Epsilon贪婪模型和UCB模型，并决定使用<code>Thompson Sampling模型</code>，因为它提供了更好的解释能力和连续的概率变化。</p>
+<p>在<code>Thompson Sampling模型</code>中，我们将reward建模为操作和模型参数的函数，并<strong>根据最大化预期回报的概率来选择行动</strong>。该贝叶斯方法使用所采取的操作的观察结果来更新先验，并以等于其最小预期cost的概率来选择每个操作：<br>
+$$<br>
+P(a*)=\int I(E(c|a*,\theta)=min_aE(c|a*,\theta))P(\theta|obs)d\theta<br>
+$$<br>
+其中$P(a*)$是选择操作$a*$的概率，$θ$是隐藏参数，$c$是成本，$obs$是作为元组列表$(a_i，c_i)$的过往观测。</p>
+<h3 id="6-3-Extension-to-Bandits">6.3 Extension to Bandits</h3>
+<p>与传统的Bandits方法不同，我们做了如下四方面的改变：</p>
+<h4 id="Accommodate-Temporal-Changes">Accommodate Temporal Changes</h4>
+<p>我们使用指数衰减权重来将重点放在最近的数据。对过去的观察结果应用乘法权重，格式如下：<br>
+$$<br>
+衰变=\sigma^{T-T_{obs}}<br>
+$$<br>
+其中$σ$是衰减因子，$T$是当前时间，$T_{obs}$是观测时间。</p>
+<p>σ默认设置为0.99，3个月后权重将接近0。</p>
+<p>伽玛先验下的<code>Thompson Sampling</code>演变为：<br>
+$$<br>
+P(\theta|a,obs)\sim\Gamma(1+\sum_{i,a_i=a}c_i\sigma<sup>{T-T_i},1+\sum_{i,a_i=a}\sigma</sup>{T-T_i})<br>
+$$</p>
+<h4 id="Delayed-Reward-Collection">Delayed Reward Collection</h4>
+<p>在我们的环境中，一个关键的挑战是所采取的操作和其影响之间可能存在很长的时间。这迫使我们至少观察10天，最多30天，观察选择每一项操作的影响。</p>
+<p>而观察窗口高度依赖于操作的持续时间及其效果：7天的$UA-LM-HI$将需要大约10天，而15天的$Avoid-RH$将需要整整30天来观察健康重置后的潜在故障。长观察窗口的缺点是将reward整合到模型中会有延迟。因此，在观察到的cost可以重新调整概率之前，可能会使用错误的估计一段时间。抵消这种影响的一种方法是观察奖励的到来，但我们可能会受到相反的影响，即在临近决定的时候重新启动，从而产生偏移。我们的经验表明，<strong>我们需要等待完整的初始观察窗口，然后才能逐步获得部分reward</strong>。</p>
+<h4 id="Bandit-stickiness">Bandit stickiness</h4>
+<p>由于选择每个操作的概率会随着时间的推移而变化，因此我们不能依赖A/B测试中的散列函数来确保始终将节点分配给相同的操作。我们将时间$T$的$\text{Bandit stickiness}$定义为<strong>如果节点在$T$时间窗口内具有相同规则的可用决策，重复使用先前选择的操作组合</strong>。</p>
+<h4 id="Deal-with-Unexpected-Spikes">Deal with Unexpected Spikes</h4>
+<p>我们系统中的另一个潜在问题是虚拟机中断事件的意外激增，这可能会对一个操作组产生比另一个操作组更大的影响。我们用下面描述的Safe Guard机制来解决这个问题。</p>
+<h3 id="6-4-Safe-Guards">6.4 Safe Guards</h3>
+<p>在Narya缓解决策逻辑中，安全是重中之重。</p>
+<p>除了action override(第6.1节)之外，我们还应用safety constraints——特定于域的限制来禁止某些故障场景中的某些操作。Narya Decision Engine还要求在遵循Bandit的建议之前进行最低数量的观察。Bandit模型将为<strong>不充分的观察输出一个过早的标志</strong>，在这种情况下，我们将退回到类似于A/B测试的默认操作概率。这也有助于在更大的观察组中冲淡尖峰的潜在影响。</p>
+<p>此外，我们支持为每个操作概率配置最小和最大约束。最大约束限制了对high cost的可能反应，而最小约束保证了对在特定时间看起来不相关的操作的一些探索。</p>
+<p>在实验上，我们发现，<strong>当每天标记的节点少于100时，使用10%的探测，当它更高时，使用5%的探测可以产生最好的结果。</strong></p>
+<h2 id="7-Narya-System-Design-and-Implementation">7 Narya System Design and Implementation</h2>
+<p>在本节中，我们将介绍对Narya的系统支持。下图是Narya的系统架构。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012205208542.png" alt="image-20221012205208542"></p>
+<h3 id="7-1-Failure-Predictor">7.1 Failure Predictor</h3>
+<p>Azure在每个节点中部署各种代理，以监控主机环境的运行状况。Narya预测器从这些监控代理获取信号，并运行<strong>基于规则的预测和基于ML的预测</strong>。</p>
+<p>基于规则的预测具有成本低、优先级高的特点。因此，其预测逻辑<strong>直接在主机中执行</strong>。基于ML的预测检查更多的信号，如性能计数器，并运行更复杂的预测逻辑。因此，ML预测器被实现为<strong>集中式服务</strong>。</p>
+<p><code>LightGBM</code>用于决策树模型，<code>PyTorch</code>用于深度学习模型。ML推理任务以小时级<code>Spark</code>作业的形式运行，该作业读取最新的信号和经过训练的ML模型，以计算每个主机的故障概率。</p>
+<h4 id="Pub-Sub-Service">Pub/Sub Service</h4>
+<p>如果预测节点以很高的概率发生故障，则创建$\text{mitigation request}$。预测器将请求与关于主机的元数据信息(例如，硬件代数、操作系统版本)一起发布到我们在<code>Kafka</code>之上实现的中央发布/订阅服务。我们选择Kafka是因为它<strong>允许可扩展、低延迟和实时的流处理来快速交付</strong>$\text{mitigation request}$。</p>
+<h3 id="7-2-Mitigation-Engine">7.2 Mitigation Engine</h3>
+<p>缓解引擎是Narya的核心部件。在内部，它由四大微服务组成。这些微服务使用REST API相互通信，并与Azure中的其他服务进行通信</p>
+<h4 id="Create-Mitigation-Job">Create Mitigation Job</h4>
+<p>请求处理程序微服务使用来自发布/订阅服务的$\text{mitigation request}$。收到$\text{mitigation request}$后，它会创建具有<strong>作业ID</strong>的缓解作业。其他微服务使用此作业ID来跟踪缓解并查询其进度</p>
+<h4 id="Instantiate-Mitigation-Policy">Instantiate Mitigation Policy</h4>
+<p>对于新的缓解作业，策略生成器创建缓解策略，该策略将<strong>请求中的信息映射到要采取的操作</strong>。它被表示为<strong>决策树</strong>。有两种类型的树节点：<strong>选择节点</strong>，它根据某个C#谓词选择下一个要访问的树节点；<strong>操作节点</strong>，它执行用户定义的C#函数。</p>
+<p>决策树结构允许我们轻松地指定决策逻辑。例如，我们可以基于故障类型(软件或硬件)、故障代码(例如，<code>Req.FaultCode==0x123</code>)、集群类型(存储或计算)、hardware generations(例如，<code>HostNode.Gen！=&quot;ABC&quot;</code>)等来决定缓解措施。图7示出了示例。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012210739132.png" alt="image-20221012210739132" style="zoom:67%;" />
+<p>策略源自模板(Json配置文件)。对于A/B测试，动作分布在模板中指定。对于Bandit，动作树节点根据<strong>上下文信息动态生成</strong>。特别地，它调用了一个ML模型服务平台<code>Resource Central</code>，该平台具有诸如故障代码、VM计数等相关特性。该平台返回一个exploration setting——缓解行动的概率分布。然后，策略生成器对检索到的exploration setting应用安全约束，以获得调整后的动作概率分布。此外，缓解策略允许对树节点施加速率限制，以<strong>避免过度缓解可能导致容量问题或级联故障</strong>。</p>
+<h4 id="Walk-Policy-Tree">Walk Policy Tree</h4>
+<p>策略生成器进一步按<strong>DFS</strong>顺序遍历策略树，并创建一个action plan。在这个过程中，生成器执行了许多步骤，如检查谓词、检查速率限制条件等。如果一个节点被输入，生成器首先检查我们是否需要应用粘性缓解行动（第6.1节），以及是否在一定时间内对同一实验和树节点做出过决策。在这种情况下，最后的缓解行动会从分布式存储服务中检索出来。</p>
+<p>否则，如果处于A/B测试模式，则根据来自配置的概率分布对一个操作进行抽样;如果处于Bandit模式，则根据来自资源中心的概率分布对一个操作进行抽样。如果在Bandit模式中学习到的数据不足，则返回一个特定的标志来指示Bandit模型是过早的。然后生成器返回使用来自A/B测试模式的操作概率。这让我们能够安全地从A/B测试中引导Bandit学习，特别是考虑到反馈循环中的延迟成本。如果在调用模型服务平台时出现任何错误，我们将遵循相同的回退策略</p>
+<h4 id="Carry-out-Action-Plan">Carry out Action Plan</h4>
+<p><strong>Action Orchestrator微服务</strong>负责从策略树遍历会话中执行操作计划。这一步涉及到对相应的计算管理器进行API调用，因为不同的操作可能由不同的管理器实现。协调器异步执行操作以避免阻塞</p>
+<h4 id="Log-Actions">Log Actions</h4>
+<p>日志对于数据分析、Bandit训练和不同缓解策略的反事实评估都非常重要</p>
+<h4 id="Track-Node-Health">Track Node Health</h4>
+<p>Health Tracker跟踪缓解过程中的节点和虚拟机运行状况信息。例如，在重新启动一个节点时，如果我们得到一个新的信号(例如，一个WindowsEvent)，这是一个硬件问题，那么我们可以提前$HI$该节点，而不是等待重新启动失败/超时。</p>
+<h3 id="7-3-Learner">7.3 Learner</h3>
+<p>Learner是Narya的一个集中组件。它了解不同数据中心区域的缓解操作的效果。与区域化的Learner设计相比，全局Learner的优点是可以观察到更多的数据点，因此在成本估算中更可信。此外，软件/固件更新而导致的某些区域的缓解效果变化也可以快速获悉，并应用到具有相同更新的其他区域。</p>
+<p>Learner主要负责两项工作：cost收集和Bandit模型训练。</p>
+<ul>
+<li>cost收集作业从日志中检索缓解引擎的决策。然后将此信息与VM可用性度量和其他重要信息(LM状态、VM工作负载等)相关联，以确定用于训练的缓解操作的成本。的</li>
+<li>Bandit模型训练在Spark集群上运行。</li>
+</ul>
+<p>学习者的输出模型是一个分类分布，模型服务器可以很容易地从中提取样本。</p>
+<h2 id="8-Evaluation">8 Evaluation</h2>
+<p>我们的评估回答了几个问题:</p>
+<ol>
+<li>Narya在避免虚拟机中断方面有多有效?</li>
+<li>故障预测的准确性和及时性如何?</li>
+<li>Bandit模型与A/B测试相比如何?</li>
+</ol>
+<h3 id="8-1-VM-Interruption-Savings">8.1 VM Interruption Savings</h3>
+<p>计算了三个指标：the estimated daily AIR savings——$\hat S$，the oracle daily AIR savings(已知最佳操作)——$S^{*}$，the regret(额外节约的AIR)。</p>
+<p>经过评估，2020年3月，$\hat S$改善了26.2%——Narya成功比静态策略减少约26.2%的AIR。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012214136406.png" alt="image-20221012214136406" style="zoom:80%;" />
+<p>尽管考虑到Azure的规模，26%看起来并不大，但它代表了大量VM重启，每一次都对客户产生了巨大影响。有了针对更多故障类型和新操作的新预测规则，Narya可能会带来进一步的改进。</p>
+<h3 id="8-2-Savings-Trend-Over-Time">8.2 Savings Trend Over Time</h3>
+<p>图9显示了随着时间的推移AIR的改进。总的来说，节省在20%到40%之间波动。7月份出现了突然上升。这是因为在6月至7月期间发生了一次主要的固件修复。该固件部署修复了一个驱动程序问题，我们通过提前预测故障减少了很多AIR。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012214417972.png" alt="image-20221012214417972"></p>
+<h3 id="8-3-Accuracy-and-Timeliness-of-Prediction">8.3 Accuracy and Timeliness of Prediction</h3>
+<p>总体精度为79.49%，总体召回率为50.7%，假阳性率为20.51%</p>
+<p>我们进一步评估了不同信号(特征)对预测精度的贡献。我们使用<code>SHAP</code>方法计算特征的重要性，根据它们的重要性对特征进行排序，并将它们分组到10个bin中。然后，我们使用单个容器或聚合容器评估精度和召回率。图10显示了结果。我们可以看到一些特性比其他的更重要。第一个bin（包含<code>read error rate, flush count, AvailableSpare, HostReadCommands</code>）的作用尤其显著。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012214848412.png" alt="image-20221012214848412" style="zoom:67%;" />
+<p>除了精度和召回率，对Narya来说，重要的是要考虑预测前置时间(或故障时间)，定义为预测时间和故障时间之间的间隔。更长的前置时间使Narya有更多的时间采取预防措施。图11显示了ML预测时间到故障的<code>CDF</code>（累计分布函数），前置时间的中位数为2.44天。图12比较了基于ML的预测和基于规则的预测的时效性：基于ml的预测在时效性方面具有显著优势。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012215127780.png" alt="image-20221012215127780"></p>
+<p>我们衡量了早期预测对live migration成功的量化效益。对于预测失败的节点，每个节点的平均成功live migration为5.57。由于提前时间更短，每个节点成功的live migration减少到3个</p>
+<h3 id="8-4-Comparing-AB-Testing-and-Bandit">8.4 Comparing AB Testing and Bandit</h3>
+<p>在2020年2月和3月的2个月期间，使用Bandit而不是A/B测试进行正在进行的实验，<strong>可以帮助减少14.4%的VM中断数量</strong>。与Bandit测试相比，A/B测试更安全，并且允许使用多种cost metirc。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012215447757.png" alt="image-20221012215447757" style="zoom:67%;" />
+<h3 id="8-5-Convergence-to-Optimal-Action">8.5 Convergence to Optimal Action</h3>
+<p>表3给出了不同实验A/B测试的收敛时间。不收敛通常表示实验操作之间没有显著差异。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012215616744.png" alt="image-20221012215616744"></p>
+<p>Bandit可以实现更快的收敛到最好的操作。图14显示了结果。Bandit收敛约50步，而AB测试收敛需要125步。更快的收敛也能节省更多的AIR。如图15所示，Bandit测试产生的重启比AB测试少得多。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012215803723.png" alt="image-20221012215803723"></p>
+<h3 id="8-6-Case-Studies">8.6 Case Studies</h3>
+<p><strong>Blobcache error</strong>是一种症状，可能是由硬件问题或一些可恢复的故障引起的。</p>
+<p><strong>E11</strong>是指示磁盘控制器错误的Windows事件。当此事件发生时，通常意味着硬盘正在经历一些问题，极有可能表明即将发生故障。</p>
+<h3 id="8-7-Reward-Collection-Schemes">8.7 Reward Collection Schemes</h3>
+<p>我们比较了三种可能的reward收集方案:</p>
+<p>(a) 延迟reward收集。</p>
+<p>(b) 立即reward收集。</p>
+<p>© 递增reward收集。</p>
+<p>reward奖励收集(§6.3)是我们的默认方案。在（b）中，我们将虚拟机的中断cost与当天完成的操作联系起来，并更新Bandit模型。在（c）中，我们每天更新并关联cost。</p>
+<p>在我们进行的不同的A/B测试实验中，(b)平均提高了7.12%的AIR，而(a)平均提高了8.50%的AIR。这是因为即时reward收集<strong>很容易受到噪音的影响</strong>。图17说明了一个实验中的比较。</p>
+<img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012220811798.png" alt="image-20221012220811798" style="zoom:67%;" />
+<p>在我们的实验中，增量方案的性能略差于延迟方案，AIR提高了8.45%。一个原因是，如果环境相对稳定，增加局部观测并不能提供太多新信息</p>
+<h3 id="8-8-Safe-Guards">8.8 Safe Guards</h3>
+<p>安全防护程序可以在许多方面影响系统。首先，它允许不断探索所有操作，以便及时适应系统变化；其次，它防止过早地向错误的政策靠拢；第三，Safe Guards降低了意外峰值的影响。</p>
+<h3 id="8-9-Scale-and-Performance">8.9 Scale and Performance</h3>
+<p>Narya在Azure的每个数据中心区域运行。缓解引擎每天处理数百到数千的请求。故障预测器每天处理数十个TB的信号。图18a显示了每天缓解请求会话的数量（包括所有故障处理），以及通过我们的A/B测试实验的请求和由我们的Bandit模型处理的请求的数量。图18b显示了缓解操作会话持续时间的CDF。</p>
+<p><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/image-20221012221321257.png" alt="image-20221012221321257"></p>
+<h2 id="11-Conclusion">11. Conclusion</h2>
+<p>我们在云基础设施的背景下研究容错系统设计中的一个重要主题——故障避免。根据我们在运行大型生产云系统方面的经验，我们提出了一种新的在线实验和学习方法来解决这个问题。我们介绍了Narya，一个端到端服务，包括故障预测和智能缓解。Narya使用A/B测试和Bandit模型持续评估生产环境下中的最佳缓解操作作。Narya已经在Azure计算基础设施中运行了15个月，与之前的静态策略相比，在减少VM中断方面提高了26%。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yijunquan-afk.github.io">JunQuan Yi</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yijunquan-afk.github.io/2022/10/14/Interruptions/">https://yijunquan-afk.github.io/2022/10/14/Interruptions/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yijunquan-afk.github.io" target="_blank">雨落俊泉</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F%E7%B3%BB%E7%BB%9F-%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">-云原生系统 -强化学习</a></div><div class="post_share"><div class="social-share" data-image="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/"><img class="next-cover" src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MIT课程分布式系统学习07——Fault Tolerance raft2</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/mmexport1659410440620.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">JunQuan Yi</div><div class="author-info__description">记录学习与生活</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yijunquan-afk"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">自由快乐</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Abstract"><span class="toc-number">1.</span> <span class="toc-text">Abstract</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Introduction"><span class="toc-number">2.</span> <span class="toc-text">1 Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Background-and-Motivation"><span class="toc-number">3.</span> <span class="toc-text">2 Background and Motivation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Target-System-and-Goal"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 Target System and Goal</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Are-Failures-Predictable"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 Are Failures Predictable?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Why-Reacting-on-Predicted-Failure"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 Why Reacting on Predicted Failure?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-Why-Static-Mitigation-Is-Insufficient"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 Why Static Mitigation Is Insufficient?</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Overview"><span class="toc-number">4.</span> <span class="toc-text">3 Overview</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Narya-Workflow"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 Narya Workflow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Key-Optimization-Metric"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 Key Optimization Metric</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Challenges"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 Challenges</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Predicting-Node-Failures"><span class="toc-number">5.</span> <span class="toc-text">4 Predicting Node Failures</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Input-Signals"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Input Signals</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Rule-based-Prediction"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 Rule-based Prediction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Learning-based-Prediction"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Learning-based Prediction</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Prediction-Horizon-and-Label"><span class="toc-number">5.3.1.</span> <span class="toc-text">Prediction Horizon and Label</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Machine-Learning-Model"><span class="toc-number">5.3.2.</span> <span class="toc-text">Machine Learning Model</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Mitigation-Actions"><span class="toc-number">6.</span> <span class="toc-text">5 Mitigation Actions</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Live-Migration"><span class="toc-number">6.0.1.</span> <span class="toc-text">Live Migration</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VM-Preserving-Soft-Reboot"><span class="toc-number">6.0.2.</span> <span class="toc-text">VM Preserving Soft Reboot</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Service-Healing"><span class="toc-number">6.0.3.</span> <span class="toc-text">Service Healing</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Mark-Unallocatable"><span class="toc-number">6.0.4.</span> <span class="toc-text">Mark Unallocatable</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Avoid"><span class="toc-number">6.0.5.</span> <span class="toc-text">Avoid</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NoOp"><span class="toc-number">6.0.6.</span> <span class="toc-text">NoOp</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Decision-Logic-for-Adaptive-Mitigation"><span class="toc-number">7.</span> <span class="toc-text">6 Decision Logic for Adaptive Mitigation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Online-Experimentation-with-A-B-testing"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 Online Experimentation with A&#x2F;B testing</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Cost"><span class="toc-number">7.1.1.</span> <span class="toc-text">Cost</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Assignment-Strategy"><span class="toc-number">7.1.2.</span> <span class="toc-text">Assignment Strategy</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Action-Overriding"><span class="toc-number">7.1.3.</span> <span class="toc-text">Action Overriding</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Effect-Observation-and-Attribution"><span class="toc-number">7.1.4.</span> <span class="toc-text">Effect Observation and Attribution</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hypothesis-Testing"><span class="toc-number">7.1.5.</span> <span class="toc-text">Hypothesis Testing</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Bandit-Modeling"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 Bandit Modeling</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Actions"><span class="toc-number">7.2.1.</span> <span class="toc-text">Actions</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Exploration-Algorithm"><span class="toc-number">7.2.2.</span> <span class="toc-text">Exploration Algorithm</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Extension-to-Bandits"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 Extension to Bandits</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Accommodate-Temporal-Changes"><span class="toc-number">7.3.1.</span> <span class="toc-text">Accommodate Temporal Changes</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Delayed-Reward-Collection"><span class="toc-number">7.3.2.</span> <span class="toc-text">Delayed Reward Collection</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Bandit-stickiness"><span class="toc-number">7.3.3.</span> <span class="toc-text">Bandit stickiness</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Deal-with-Unexpected-Spikes"><span class="toc-number">7.3.4.</span> <span class="toc-text">Deal with Unexpected Spikes</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-Safe-Guards"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 Safe Guards</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-Narya-System-Design-and-Implementation"><span class="toc-number">8.</span> <span class="toc-text">7 Narya System Design and Implementation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Failure-Predictor"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 Failure Predictor</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Pub-Sub-Service"><span class="toc-number">8.1.1.</span> <span class="toc-text">Pub&#x2F;Sub Service</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Mitigation-Engine"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 Mitigation Engine</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Create-Mitigation-Job"><span class="toc-number">8.2.1.</span> <span class="toc-text">Create Mitigation Job</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Instantiate-Mitigation-Policy"><span class="toc-number">8.2.2.</span> <span class="toc-text">Instantiate Mitigation Policy</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Walk-Policy-Tree"><span class="toc-number">8.2.3.</span> <span class="toc-text">Walk Policy Tree</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Carry-out-Action-Plan"><span class="toc-number">8.2.4.</span> <span class="toc-text">Carry out Action Plan</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Log-Actions"><span class="toc-number">8.2.5.</span> <span class="toc-text">Log Actions</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Track-Node-Health"><span class="toc-number">8.2.6.</span> <span class="toc-text">Track Node Health</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Learner"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 Learner</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-Evaluation"><span class="toc-number">9.</span> <span class="toc-text">8 Evaluation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-VM-Interruption-Savings"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 VM Interruption Savings</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Savings-Trend-Over-Time"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 Savings Trend Over Time</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Accuracy-and-Timeliness-of-Prediction"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 Accuracy and Timeliness of Prediction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-Comparing-AB-Testing-and-Bandit"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 Comparing AB Testing and Bandit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-Convergence-to-Optimal-Action"><span class="toc-number">9.5.</span> <span class="toc-text">8.5 Convergence to Optimal Action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-6-Case-Studies"><span class="toc-number">9.6.</span> <span class="toc-text">8.6 Case Studies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-7-Reward-Collection-Schemes"><span class="toc-number">9.7.</span> <span class="toc-text">8.7 Reward Collection Schemes</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-8-Safe-Guards"><span class="toc-number">9.8.</span> <span class="toc-text">8.8 Safe Guards</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-9-Scale-and-Performance"><span class="toc-number">9.9.</span> <span class="toc-text">8.9 Scale and Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-Conclusion"><span class="toc-number">10.</span> <span class="toc-text">11. Conclusion</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/10/14/Interruptions/" title="Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读"/></a><div class="content"><a class="title" href="/2022/10/14/Interruptions/" title="Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读">Predictive and Adaptive Failure Mitigation to Avert Production Cloud VM Interruptions 论文精读</a><time datetime="2022-10-14T13:05:39.000Z" title="发表于 2022-10-14 21:05:39">2022-10-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/" title="MIT课程分布式系统学习07——Fault Tolerance raft2"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习07——Fault Tolerance raft2"/></a><div class="content"><a class="title" href="/2022/08/23/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A007/" title="MIT课程分布式系统学习07——Fault Tolerance raft2">MIT课程分布式系统学习07——Fault Tolerance raft2</a><time datetime="2022-08-23T15:17:07.000Z" title="发表于 2022-08-23 23:17:07">2022-08-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/" title="MIT课程分布式系统学习06——Fault Tolerance raft1"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习06——Fault Tolerance raft1"/></a><div class="content"><a class="title" href="/2022/08/19/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A006/" title="MIT课程分布式系统学习06——Fault Tolerance raft1">MIT课程分布式系统学习06——Fault Tolerance raft1</a><time datetime="2022-08-19T13:56:06.000Z" title="发表于 2022-08-19 21:56:06">2022-08-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A004%E2%80%94/" title="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173724.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance"/></a><div class="content"><a class="title" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A004%E2%80%94/" title="MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance">MIT课程分布式系统学习04——PrimaryBackup Replication for Fault Tolerance</a><time datetime="2022-08-17T12:42:37.000Z" title="发表于 2022-08-17 20:42:37">2022-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A003/" title="MIT课程分布式系统学习03——GFS"><img src="https://note-image-1307786938.cos.ap-beijing.myqcloud.com/typora/20220802173409.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIT课程分布式系统学习03——GFS"/></a><div class="content"><a class="title" href="/2022/08/17/MIT%E8%AF%BE%E7%A8%8B%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A003/" title="MIT课程分布式系统学习03——GFS">MIT课程分布式系统学习03——GFS</a><time datetime="2022-08-16T16:41:00.000Z" title="发表于 2022-08-17 00:41:00">2022-08-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 By JunQuan Yi</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
